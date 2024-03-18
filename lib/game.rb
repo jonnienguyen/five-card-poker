@@ -12,7 +12,9 @@ class Deck
     suits = ["Spades", "Hearts", "Diamonds", "Club"]
     cards = ["Ace", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
     @complete_deck = suits.product(cards)
+    @complete_deck.shuffle()
   end
+
 end
 
 
