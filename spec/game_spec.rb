@@ -23,5 +23,13 @@ RSpec.describe Deck do
         expect(deckEx1).to_not eq deckEx2
       end
   end
+end
+
+RSpec.describe Card do
+  let(:cardEx) {Card.new(["Ace", "Spades"])}
+  it "Reads card info" do
+    expect(cardEx.get_card) == "Ace of Spades"
+
+  end
 
 end
