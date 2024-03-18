@@ -2,9 +2,13 @@
 require 'game'
 
 
-RSpec.describe Game do
-end
+RSpec.describe Card do
+  let(:cardEx) {Card.new(["Ace", "Spades"])}
+  it "Reads card info" do
+    expect(cardEx.get_card) == "Ace of Spades"
 
+  end
+end
 
 RSpec.describe Deck do
   let(:deckEx1) {Deck.new()}
@@ -25,11 +29,30 @@ RSpec.describe Deck do
   end
 end
 
-RSpec.describe Card do
-  let(:cardEx) {Card.new(["Ace", "Spades"])}
-  it "Reads card info" do
-    expect(cardEx.get_card) == "Ace of Spades"
-
+RSpec.describe Hand do
+  describe "#decide_winner" do
+    it "is Royal flush" do
+    end
+    it "is Straight flush" do
+    end
+    it "is Four of a Kind" do
+    end
+    it "is Full house" do
+    end
+    it "is Flush" do
+    end
+    it "is Straight" do
+    end
+    it "is Three of a kind" do
+    end
+    it "is Two pair" do
+    end
+    it "is Pair" do
+    end
+    it "is High card" do
+    end
   end
+end
 
+RSpec.describe Game do
 end
