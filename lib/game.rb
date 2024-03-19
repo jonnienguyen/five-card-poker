@@ -1,13 +1,21 @@
 class Game
+
+  attr_accessor :current_deck, :whose_turn, :bets, :num_players
   def initialize(players_name)
     @current_deck = Deck.new
     @whose_turn = ""
-    @pots = 0
+    # @pots = 0
     @bets = 0
     @num_players = []
 
     players_name.each do |player_info|
-      p = Player.new(player_info[0], player_info[1], player_info[2])
+      new_hand = []
+      5.times do
+        new_hand << @current_deck.dealCard
+      end
+
+      p = Player.new(player_info[0], new_hand, player_info[1])
+
       num_players << p
     end
   end
@@ -19,7 +27,7 @@ class Deck
   # Using standard French 56-cards deck
 
   attr_accessor :complete_deck
-  attr_reader :complete_deck
+
   def initialize
     @complete_deck = createInitialDeck
   end
@@ -33,8 +41,8 @@ class Deck
 
   def dealCard
     one_card = @complete_deck.sample(1 + rand(@complete_deck.count))
-    @complete_deck.pop(one_card)
-    return one_card
+    @complete_deck.delete(one_card)
+    return @complete_deck.pop
   end
 
 end
@@ -72,6 +80,8 @@ class Hand
 end
 
 class Player < Deck
+  attr_accessor :name, :hand, :pot
+
   def initialize(name, hand, pot)
     @name = name
     @hand = hand
