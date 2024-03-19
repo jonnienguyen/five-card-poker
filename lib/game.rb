@@ -1,4 +1,17 @@
 class Game
+  def initialize(players_name)
+    @current_deck = Deck.new
+    @whose_turn = ""
+    @pots = 0
+    @bets = 0
+    @num_players = []
+
+    players_name.each do |player_info|
+      p = Player.new(player_info[0], player_info[1], player_info[2])
+      num_players << p
+    end
+  end
+
 end
 
 
@@ -7,7 +20,7 @@ class Deck
 
   attr_accessor :complete_deck
   attr_reader :complete_deck
-  def initialize()
+  def initialize
     @complete_deck = createInitialDeck
   end
 
@@ -56,13 +69,11 @@ class Hand
 
   # High card - None of the above combinations; determined by the highest ranking card in hand
 
-
-
-
 end
 
 class Player < Deck
-  def initialize(hand, pot)
+  def initialize(name, hand, pot)
+    @name = name
     @hand = hand
     @pot = pot
     # @choice = gets
