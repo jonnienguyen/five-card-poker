@@ -33,3 +33,34 @@ RSpec.describe Card do
   end
 
 end
+
+RSpec.describe Player do
+  let(:fakePlayer) {Player.new(["Ace of Spades", "7 of Diamonds", "9 of Club"], 500)}
+  it "inherits from Deck" do
+    expect(Player.ancestors).to include(Deck)
+  end
+  it "Check card in hand is valid" do
+    valid_hand = true
+    (fakePlayer.get_hand).each do |single_card|
+      single_card.split
+      if @complete_deck.include(single_card.split(" of "))
+        valid_hand False
+        break
+      end
+    end
+    expect(valid_hand).to be false
+  end
+
+  xit "Check raise pot amount" do
+    fakePlayer.raise_pot(10)
+    expect(fakePlayer.get_pot) == 490
+  end
+
+  xit "Check if player already chose discard" do
+    fakePlayer.choice("discard")
+    expect(fakePlayer.did_discard) == False
+  end
+
+  xit "If choice is discard - check discarded card logic" do
+  end
+end
