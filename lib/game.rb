@@ -1,33 +1,40 @@
 class Game
 
   attr_accessor :current_deck, :whose_turn, :bets, :num_players
+
   def initialize(players_name)
     @current_deck = Deck.new
-    @whose_turn = ""
-    # @pots = 0
-    @bets = 0
-    @num_players = []
-
-    players_name.each do |player_info|
-      new_hand = []
-      5.times do
-        new_hand << @current_deck.dealCard
-      end
-
-      p = Player.new(player_info[0], new_hand, player_info[1])
-
-      num_players << p
-    end
+    @pots = 0
+    @bets = {}
+    @players = create_players(players_name)
+    @whose_turn = @players.first
   end
 
+  def start_game
+  end
+
+  def next_turn
+  end
+
+
+
+  def create_players()
+    players_name.each do |player_info|
+    new_hand = []
+
+    5.times do
+      new_hand << @current_deck.dealCard
+    end
+
+    p = Player.new(player_info[0], new_hand, player_info[1])
+    num_players << p
+    end
+  end
 end
 
-
 class Deck
-  # Using standard French 56-cards deck
-
   attr_accessor :complete_deck
-
+  # Using standard French 56-cards deck (includes french)
   def initialize
     @complete_deck = createInitialDeck
   end
@@ -47,12 +54,15 @@ class Deck
 
 end
 
-class Card < Deck
-  def initialize(card)
-    @card = card
+class Card
+  attr_reader :value, :suit
+  def initialize(value, suit)
+    @value = value
+    @suit = suit
   end
-  def get_card()
-    puts "#{@card[0]} of #{@card[1]}"
+
+  def to_s
+    "#{@value} of #{@suit}"
   end
 end
 
@@ -79,10 +89,10 @@ class Hand
 
 end
 
-class Player < Deck
+class Player
   attr_accessor :name, :hand, :pot
 
-  def initialize(name, hand, pot)
+  def initialize(name, hand, pot = 1000)
     @name = name
     @hand = hand
     @pot = pot
@@ -92,19 +102,24 @@ class Player < Deck
   def get_hand
     return @hand
   end
-  def option()
-    # Enter the number of the card
-    if @choice.strip == "discard"
-      puts @hand
-      which_cards.split = gets
-      if which_cards.length > 3
-        puts "ERROR"
-      else
-        which_cards.each do |card|
-          @hand[card] = dealCard
-        end
-      end
-    end
+
+  def discord
   end
 
+  def action
+  end
+  # def option()
+  #   # Enter the number of the card
+  #   if @choice.strip == "discard"
+  #     puts @hand
+  #     which_cards.split = gets
+  #     if which_cards.length > 3
+  #       puts "ERROR"
+  #     else
+  #       which_cards.each do |card|
+  #         @hand[card] = dealCard
+  #       end
+  #     end
+  #   end
+  # end
 end
