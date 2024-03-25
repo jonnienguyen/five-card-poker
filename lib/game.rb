@@ -1,34 +1,12 @@
-class Game
-
-  attr_accessor :current_deck, :whose_turn, :bets, :num_players
-
-  def initialize(players_name)
-    @current_deck = Deck.new
-    @pots = 0
-    @bets = {}
-    @players = create_players(players_name)
-    @whose_turn = @players.first
+class Card
+  attr_reader :value, :suit
+  def initialize(value, suit)
+    @value = value
+    @suit = suit
   end
 
-  def start_game
-  end
-
-  def next_turn
-  end
-
-
-
-  def create_players()
-    players_name.each do |player_info|
-    new_hand = []
-
-    5.times do
-      new_hand << @current_deck.dealCard
-    end
-
-    p = Player.new(player_info[0], new_hand, player_info[1])
-    num_players << p
-    end
+  def to_s
+    "#{@value} of #{@suit}"
   end
 end
 
@@ -47,26 +25,27 @@ class Deck
   end
 
   def dealCard
-    one_card = @complete_deck.sample(1 + rand(@complete_deck.count))
-    @complete_deck.delete(one_card)
-    return @complete_deck.pop
+    # one_card = @complete_deck.sample(1 + rand(@complete_deck.count))
+    # @complete_deck.delete(one_card)
+    # one_card
+    @complete_deck.pop
   end
 
-end
-
-class Card
-  attr_reader :value, :suit
-  def initialize(value, suit)
-    @value = value
-    @suit = suit
-  end
-
-  def to_s
-    "#{@value} of #{@suit}"
-  end
 end
 
 class Hand
+  # attr_reader :cards
+
+  def initialize
+    @player_hand = []
+  end
+  def add_card(card)
+    @player_hand << Card.new(card[0], card[1])
+  end
+  def to_s
+    hand_str = @player_hand.map(&:to_s).join(", ")
+  end
+
   # Royal flush - 5 cards of same suits; rank 10 to ace.
 
   # Straight flush - 5 cards of same suits; successtive rank.
@@ -90,36 +69,62 @@ class Hand
 end
 
 class Player
-  attr_accessor :name, :hand, :pot
+  attr_accessor :hand, :pot
 
-  def initialize(name, hand, pot = 1000)
-    @name = name
+  def initialize(hand = Hand.new, pot = 1000)
+    # @name = name
     @hand = hand
     @pot = pot
     # @choice = gets
   end
 
-  def get_hand
-    return @hand
-  end
+  # def get_hand
+  #   return @hand
+  # end
 
   def discord
   end
 
   def action
   end
-  # def option()
-  #   # Enter the number of the card
-  #   if @choice.strip == "discard"
-  #     puts @hand
-  #     which_cards.split = gets
-  #     if which_cards.length > 3
-  #       puts "ERROR"
-  #     else
-  #       which_cards.each do |card|
-  #         @hand[card] = dealCard
-  #       end
-  #     end
-  #   end
-  # end
 end
+
+class Game
+
+  attr_accessor :current_deck, :whose_turn, :bets, :players
+
+  def initialize(player_names)
+    @current_deck = Deck.new
+    @players = create_players(player_names)
+    @whose_turn = @players.first
+    @pots = 0
+    @bets = 0
+  end
+
+  def start_game
+    initial_dealing
+  end
+
+  def next_turn
+  end
+
+  def initial_dealing
+    @players.each do |player|
+      5.times {player.hand.add_card(@current_deck.dealCard)}
+    end
+
+
+  end
+
+
+  def create_players(player_names)
+    players = []
+
+    player_names.each {|p| players << Player.new}
+    players
+  end
+end
+
+fake_player = Game.new(["john", "bob", "mike"])
+fake_player.start_game
+puts fake_player.players[0].hand
