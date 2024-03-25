@@ -98,33 +98,74 @@ class Game
     @players = create_players(player_names)
     @whose_turn = @players.first
     @pots = 0
-    @bets = 0
+    @bets = {}
+    # To keep track of players that folded
+    @folded = []
   end
 
   def start_game
     initial_dealing
+    betting_round
+    discard_round
+    betting_round
+    showdown
   end
 
   def next_turn
+    current_player = @players.index(@whose_turn)
+    @whose_turn = @players[(current_player + 1) % players.length]
   end
 
   def initial_dealing
     @players.each do |player|
       5.times {player.hand.add_card(@current_deck.dealCard)}
     end
+  end
 
+  def betting_round
+    loop do
+      choice = get_player_choice(player, current_bet)
+      case choice
+      when :fold
+        player_folded(player)
+        break
+      when :see
+        player_sees(player, current_bet)
+        break
+      when :raise
+        current_bet = player_raises(player, current_bet)
+        break
+      end
+    end
+    next_turn
+  end
 
+  def get_player_choice(p, curr_bet)
+    menu =
+    "
+    1. Fold: Discard hand, foreit the current pot
+    2. See current bet (Call): See currnet bets, and match current highest bet
+    3. Raise: Increase current highest bet
+    "
+    while True
+      choice = gets("#{menu}").chomp.downcase
+      case choice
+      when "fold"
+        :fold
+      when "see"
+        :see
+      when "raise"
+        :raise
+      else
+        puts "Invalid choice!"
+      end
+    end
   end
 
 
   def create_players(player_names)
     players = []
-
     player_names.each {|p| players << Player.new}
     players
   end
 end
-
-fake_player = Game.new(["john", "bob", "mike"])
-fake_player.start_game
-puts fake_player.players[0].hand
