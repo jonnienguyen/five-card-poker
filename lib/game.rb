@@ -84,12 +84,14 @@ class Player
   def action
     menu =
     "
+    Three Options:
     1. Fold: Discard hand, foreit the current pot
     2. See current bet (Call): See currnet bets, and match current highest bet
     3. Raise: Increase current highest bet
     "
-    while True
-      choice = gets("#{menu}").chomp.downcase
+    while true
+      puts menu
+      choice = gets().chomp.downcase
       case choice
       when "fold"
         return :fold
