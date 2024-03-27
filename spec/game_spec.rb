@@ -106,6 +106,22 @@ RSpec.describe Game do
     end
   end
 
+  describe "#create_and_deal" do
+  new_players = ["ada", "asa"]
+  it "Creates players with correct names and check if they have 5 cards" do
+    players = fakeGame.create_and_deal(new_players)
+    expect(players.length).to eq 2
+    # Iterate
+    players.each do |player|
+      expect(new_players.include?(player.name)).to eql true
+      expect(player.hand.length).to eq 5
+    end
+  end
+  it "Check the total number of cards left in deck" do
+    expect(fakeGame.current_deck.complete_deck.length).to eq 46
+    end
+  end
+
   describe "#next_turn" do
     it "Check next person turn" do
       fakeGame.next_turn
@@ -115,22 +131,6 @@ RSpec.describe Game do
       fakeGame.next_turn
       fakeGame.next_turn
       expect(fakeGame.whose_turn.name).to match("john")
-    end
-  end
-
-  describe "#create_and_deal" do
-    new_players = ["ada", "asa"]
-    it "Creates players with correct names and check if they have 5 cards" do
-      players = fakeGame.create_and_deal(new_players)
-      expect(players.length).to eq 2
-      # Iterate
-      players.each do |player|
-        expect(new_players.include?(player.name)).to eql true
-        expect(player.hand.length).to eq 5
-      end
-    end
-    it "Check the total number of cards left in deck" do
-      expect(fakeGame.current_deck.complete_deck.length).to eq 46
     end
   end
 end

@@ -137,6 +137,11 @@ class Game
     return players
   end
 
+  def next_turn
+    current_player = @players.index(@whose_turn)
+    @whose_turn = @players[(current_player + 1) % players.length]
+  end
+
   def start_game
     # betting_round
     # discard_round
@@ -144,29 +149,44 @@ class Game
     # showdown
   end
 
-  def next_turn
-    current_player = @players.index(@whose_turn)
-    @whose_turn = @players[(current_player + 1) % players.length]
-  end
 
   def betting_round
-
     loop do
-      choice = player.action
-      case choice
-      when :fold
-        puts "Player #{player.name} folded."
-        @folded_players << Player[player].pop
-        break
-      when :see
-        puts "The current bets made are:"
-        @bets.each do |name, bet|
-          puts "#{name} made betted $#{bet}"
-        end
+      @players.each do |player|
+        choice = player.action
 
-        break
-      when :raise
-        break
+        case choice
+
+        when :fold
+          puts "Player #{player.name} folded."
+          @folded_players << Player[player].pop
+          break
+
+        when :see
+          puts "The current bets made are:"
+          @bets.each do |name, bet|
+            puts "#{name} made betted $#{bet}"
+          end
+          puts "What amount are you betting?"
+          get_bet = gets.chomp.to_f
+          # To validate that betting amount is an allowed amount
+          until (player.pot - get_bet) > 0
+            puts "Sorry, your bet amount cannot exceed #{player.pot}"
+            get_bet = gets.chomp.to_f
+          end
+          break
+
+        when :raise
+            highest_bet = bets.value.max
+            puts "The current highest bet made is #{highest_bet}"
+            raise_bet = gets.chomp.to_f
+            until raise_bet > highest_bet
+              puts "Sorry, you must make a bet higher than #{highest_bet}"
+              raise_bet = gets.chomp.to_f
+            end
+          break
+
+        end
       end
     end
     next_turn
