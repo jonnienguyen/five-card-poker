@@ -1,10 +1,12 @@
 class Card
+  # NEEDED ?
   attr_reader :value, :suit
-  def initialize(value, suit)
-    @value = value
-    @suit = suit
+  # Pass in a unformatted card (array)
+  def initialize(card)
+    @value = card[0]
+    @suit = card[1]
   end
-
+  # For easier output; format card
   def to_s
     "#{@value} of #{@suit}"
   end
@@ -12,22 +14,22 @@ end
 
 class Deck
   attr_accessor :complete_deck
-  # Using standard French 56-cards deck (includes french)
+  # Using standard French 56-cards deck (includes Ace)
   def initialize
+    # Create the initial deck
     @complete_deck = createInitialDeck
   end
 
   def createInitialDeck
-    suits = ["Spades", "Hearts", "Diamonds", "Club"]
-    type_cards = ["Ace", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
+    suits = ["Diamonds", "Club", "Hearts", "Spades"]
+    type_cards = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
+    # To get the 56 combinations
     @complete_deck = type_cards.product(suits)
+    # After shuffle the deck
     @complete_deck.shuffle()
   end
 
   def dealCard
-    # one_card = @complete_deck.sample(1 + rand(@complete_deck.count))
-    # @complete_deck.delete(one_card)
-    # one_card
     @complete_deck.pop
   end
 
@@ -71,21 +73,34 @@ end
 class Player
   attr_accessor :hand, :pot
 
-  def initialize(hand = Hand.new, pot = 1000)
-    # @name = name
+  def initialize(hand = [], pot = 1000)
     @hand = hand
     @pot = pot
-    # @choice = gets
   end
 
-  # def get_hand
-  #   return @hand
-  # end
-
-  def discord
+  def discard
   end
 
   def action
+    menu =
+    "
+    1. Fold: Discard hand, foreit the current pot
+    2. See current bet (Call): See currnet bets, and match current highest bet
+    3. Raise: Increase current highest bet
+    "
+    while True
+      choice = gets("#{menu}").chomp.downcase
+      case choice
+      when "fold"
+        return :fold
+      when "see"
+        return :see
+      when "raise"
+        return :raise
+      else
+        puts "Invalid choice!"
+      end
+    end
   end
 end
 
@@ -100,15 +115,15 @@ class Game
     @pots = 0
     @bets = {}
     # To keep track of players that folded
-    @folded = []
+    @folded_players = []
   end
 
   def start_game
     initial_dealing
-    betting_round
-    discard_round
-    betting_round
-    showdown
+    # betting_round
+    # discard_round
+    # betting_round
+    # showdown
   end
 
   def next_turn
@@ -118,54 +133,40 @@ class Game
 
   def initial_dealing
     @players.each do |player|
-      5.times {player.hand.add_card(@current_deck.dealCard)}
+      5.times {player.hand << @current_deck.dealCard}
+
     end
   end
 
   def betting_round
+
     loop do
-      choice = get_player_choice(player, current_bet)
+      choice = player.action
       case choice
       when :fold
-        player_folded(player)
+        puts "Player #{player.name} folded."
+        @folded_players << Player[player].pop
         break
       when :see
-        player_sees(player, current_bet)
+        puts "The current bets made are:"
+        @bets.each do |name, bet|
+          puts "#{name} made betted $#{bet}"
+        end
+
         break
       when :raise
-        current_bet = player_raises(player, current_bet)
         break
       end
     end
     next_turn
   end
 
-  def get_player_choice(p, curr_bet)
-    menu =
-    "
-    1. Fold: Discard hand, foreit the current pot
-    2. See current bet (Call): See currnet bets, and match current highest bet
-    3. Raise: Increase current highest bet
-    "
-    while True
-      choice = gets("#{menu}").chomp.downcase
-      case choice
-      when "fold"
-        :fold
-      when "see"
-        :see
-      when "raise"
-        :raise
-      else
-        puts "Invalid choice!"
-      end
-    end
-  end
-
-
   def create_players(player_names)
     players = []
-    player_names.each {|p| players << Player.new}
-    players
+    player_names.each do |name|
+      name = Player.new()
+      players << name
+    end
+    return players
   end
 end

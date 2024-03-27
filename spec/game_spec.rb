@@ -1,31 +1,10 @@
 #spec/game_spec.rb
 require 'game'
 
-RSpec.describe Game do
-  let(:fakeGame) {Game.new([["John", 100], ["Bob", 50]])}
-  describe "#initialize" do
-  it "Check number of players" do
-    expect(fakeGame.num_players.length).to eq 2
-  end
-  it "Check players info" do
-    expect(fakeGame.num_players[0].name) == "John"
-    expect(fakeGame.num_players[0].hand.length).to eq 5
-    expect(fakeGame.num_players[0].pot).to eq 100
-  end
-  it "check each player hand are not the same" do
-    expect(fakeGame.num_players[0].hand).to_not eq fakeGame.num_players[1].hand
-  end
-  it "Check number of cards" do
-    expect(fakeGame.current_deck.complete_deck.length).to eq 46
-  end
-end
-
-end
-
 RSpec.describe Card do
   let(:cardEx) {Card.new(["Ace", "Spades"])}
-  it "Reads card info" do
-    expect(cardEx.get_card) == "Ace of Spades"
+  it "Get card info" do
+    expect(cardEx) == "Ace of Spades"
 
   end
 end
@@ -103,4 +82,30 @@ RSpec.describe Player do
 
   xit "If choice is discard - check discarded card logic" do
   end
+end
+
+RSpec.describe Game do
+
+  let(:fakeGame) {Game.new(["john", "bob"])}
+  before(:each) do
+    fakeGame.start_game
+  end
+
+  describe "#initialize" do
+  it "Check number of players" do
+    expect(fakeGame.players.length).to eq 2
+  end
+  it "Checks player info" do
+    expect(fakeGame.players[0]) == "John"
+    expect(fakeGame.players[0].hand.length).to eq 5
+    expect(fakeGame.players[0].pot).to eq 1000
+  end
+  it "check each player hand are not the same" do
+    expect(fakeGame.players[0].hand).to_not eq fakeGame.players[1].hand
+  end
+  it "Check number of cards" do
+    expect(fakeGame.current_deck.complete_deck.length).to eq 46
+  end
+end
+
 end
