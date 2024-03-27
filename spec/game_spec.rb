@@ -79,27 +79,58 @@ RSpec.describe Player do
 end
 
 RSpec.describe Game do
-
   let(:fakeGame) {Game.new(["john", "bob"])}
+  # To get cards
   before(:each) do
     fakeGame.start_game
   end
 
   describe "#initialize" do
-  it "Check number of players" do
-    expect(fakeGame.players.length).to eq 2
+    it "Check number of players" do
+      expect(fakeGame.players.length).to eq 2
+    end
+    it "Check initial whose turn" do
+      expect(fakeGame.whose_turn.name).to match("john")
+    end
+    it "Checks player info" do
+      expect(fakeGame.players[0].name).to match("john")
+      expect(fakeGame.players[0].hand.length).to eq 5
+      expect(fakeGame.players[0].pot).to eq 1000
+    end
+    it "check each player hand are not the same" do
+      expect(fakeGame.players[0].hand).to_not eq fakeGame.players[1].hand
+    end
+    # this is after it deals 5 card to the players (10 cards total)
+    it "Check number of cards" do
+      expect(fakeGame.current_deck.complete_deck.length).to eq 46
+    end
   end
-  it "Checks player info" do
-    expect(fakeGame.players[0]) == "John"
-    expect(fakeGame.players[0].hand.length).to eq 5
-    expect(fakeGame.players[0].pot).to eq 1000
-  end
-  it "check each player hand are not the same" do
-    expect(fakeGame.players[0].hand).to_not eq fakeGame.players[1].hand
-  end
-  it "Check number of cards" do
-    expect(fakeGame.current_deck.complete_deck.length).to eq 46
-  end
-end
 
+  describe "#next_turn" do
+    it "Check next person turn" do
+      fakeGame.next_turn
+      expect(fakeGame.whose_turn.name).to match("bob")
+    end
+    it "Check for if it reachs end of players (should go back to first)" do
+      fakeGame.next_turn
+      fakeGame.next_turn
+      expect(fakeGame.whose_turn.name).to match("john")
+    end
+  end
+
+  describe "#create_and_deal" do
+    new_players = ["ada", "asa"]
+    it "Creates players with correct names and check if they have 5 cards" do
+      players = fakeGame.create_and_deal(new_players)
+      expect(players.length).to eq 2
+      # Iterate
+      players.each do |player|
+        expect(new_players.include?(player.name)).to eql true
+        expect(player.hand.length).to eq 5
+      end
+    end
+    it "Check the total number of cards left in deck" do
+      expect(fakeGame.current_deck.complete_deck.length).to eq 46
+    end
+  end
 end

@@ -37,7 +37,7 @@ end
 
 class Hand
   # attr_reader :cards
-
+  # DELETE  ????
   def initialize
     @player_hand = []
   end
@@ -71,9 +71,10 @@ class Hand
 end
 
 class Player
-  attr_accessor :hand, :pot
+  attr_accessor :name, :hand, :pot
 
-  def initialize(hand = [], pot = 1000)
+  def initialize(name, hand = [], pot = 1000)
+    @name = name
     @hand = hand
     @pot = pot
   end
@@ -90,6 +91,8 @@ class Player
     3. Raise: Increase current highest bet
     "
     while true
+      # Continues to prompt user for input if invalid;
+      # else returns therefore ending loop
       puts menu
       choice = gets().chomp.downcase
       case choice
@@ -112,7 +115,9 @@ class Game
 
   def initialize(player_names)
     @current_deck = Deck.new
-    @players = create_players(player_names)
+    # Create a Player instance for each
+    @players = create_and_deal(player_names)
+    # Turn is determined by the index :)
     @whose_turn = @players.first
     @pots = 0
     @bets = {}
@@ -120,8 +125,19 @@ class Game
     @folded_players = []
   end
 
+  def create_and_deal(player_names)
+    # Create Player with an intital 5 cards
+    players = []
+    player_names.each do |name|
+      name = Player.new(name)
+      # Draw 5 cards each
+      5.times {name.hand << @current_deck.dealCard}
+      players << name
+    end
+    return players
+  end
+
   def start_game
-    initial_dealing
     # betting_round
     # discard_round
     # betting_round
@@ -131,13 +147,6 @@ class Game
   def next_turn
     current_player = @players.index(@whose_turn)
     @whose_turn = @players[(current_player + 1) % players.length]
-  end
-
-  def initial_dealing
-    @players.each do |player|
-      5.times {player.hand << @current_deck.dealCard}
-
-    end
   end
 
   def betting_round
@@ -163,12 +172,4 @@ class Game
     next_turn
   end
 
-  def create_players(player_names)
-    players = []
-    player_names.each do |name|
-      name = Player.new()
-      players << name
-    end
-    return players
-  end
 end
