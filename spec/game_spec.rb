@@ -76,6 +76,18 @@ RSpec.describe Player do
     end
   end
 
+  describe "#discard" do
+    it "prompt user for how many cards to discard" do
+      allow(fakePlayer).to receive(:gets).and_return("3")
+      expect(fakePlayer.discard).to eq 3
+    end
+    it "checks if user enter an invalid number" do
+      allow(fakePlayer).to receive(:gets).and_return("4", "2")
+      expect {fakePlayer.discard}.to output("How many card do you wish to discard (between 0 and 3)?\nSorry, enter an valid number of cards to discard:\n").to_stdout
+      expect(fakePlayer.discard).to eq 2
+    end
+  end
+
 end
 
 RSpec.describe Game do

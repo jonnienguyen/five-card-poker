@@ -80,6 +80,15 @@ class Player
   end
 
   def discard
+    puts "How many card do you wish to discard (between 0 and 3)?"
+    num_cards = gets.chomp.to_i
+    # Check if its between 0 and 3
+    until (0..3).include?(num_cards)
+      puts "Sorry, enter an valid number of cards to discard:"
+      num_cards = gets.chomp.to_i
+    end
+
+    return num_cards
   end
 
   def action
@@ -174,6 +183,13 @@ class Game
   # After betting round, remove folded players
   @players -= @folded_players
   # puts get_names("current")
+  end
+
+  def discard_round
+    @players.each do |player|
+      @whose_turn = player
+
+    end
   end
 
   # To get all names of player
