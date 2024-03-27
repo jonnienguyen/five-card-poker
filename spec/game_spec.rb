@@ -81,9 +81,10 @@ end
 RSpec.describe Game do
   let(:fakeGame) {Game.new(["john", "bob"])}
   # To get cards
-  before(:each) do
-    fakeGame.start_game
-  end
+
+  # before(:each) do
+  #   fakeGame.start_game
+  # end
 
   describe "#initialize" do
     it "Check number of players" do
@@ -132,5 +133,51 @@ RSpec.describe Game do
       fakeGame.next_turn
       expect(fakeGame.whose_turn.name).to match("john")
     end
+  end
+
+  describe "#betting_round" do
+
+    it "Removes player from game when folded" do
+      allow(fakeGame.players[0]).to receive(:action).and_return(:fold)
+      allow(fakeGame.players[1]).to receive(:action).and_return(:fold)
+      fakeGame.betting_round
+
+      expect(fakeGame.get_names("folded")).to include("john")
+      expect(fakeGame.get_names("current")).not_to include("john")
+      expect(fakeGame.get_names("folded")).to include("bob")
+      expect(fakeGame.get_names("current")).not_to include("bob")
+      # Every players has folded so should be 0
+      expect(fakeGame.players.length).to eq 0
+    end
+
+    it "Handles see action correctly" do
+      # Stub the input for the betting amount, including the newline character to check for chomp
+      allow(fakeGame.players[0]).to receive(:action).and_return(:fold)
+      allow(fakeGame.players[1]).to receive(:action).and_return(:see)
+      allow(fakeGame).to receive(:gets).and_return("100\n")
+      # Was having trouble cause it's an infinite loop
+
+      fakeGame.betting_round
+      # allow(fakeGame).to receive(:gets).and_return("200\n")
+
+      expect(fakeGame.bets["bob"]).to eq(100)
+      # Since player 1 has folded check length of players left.
+      expect(fakeGame.players.length).to eq 1
+    end
+
+    it "Raise bet correctly" do
+      # Stub player actions and input for raising bets
+      allow(fakeGame.players[0]).to receive(:action).and_return(:raise)
+      allow(fakeGame.players[1]).to receive(:action).and_return(:raise)
+      # dynamically simulate user input for each player
+      allow(fakeGame).to receive(:gets).and_return("200\n", "400\n")
+      fakeGame.betting_round
+
+      # Check if the bets are correctly updated
+      expect(fakeGame.bets[fakeGame.players[0].name]).to eq(200)
+      expect(fakeGame.bets[fakeGame.players[1].name]).to eq(400)
+    end
+
+
   end
 end

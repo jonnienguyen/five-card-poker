@@ -93,15 +93,19 @@ class Player
     while true
       # Continues to prompt user for input if invalid;
       # else returns therefore ending loop
-      puts menu
-      choice = gets().chomp.downcase
+      # puts menu
+      choice = gets.downcase.chomp
+
       case choice
       when "fold"
         return :fold
+        break
       when "see"
         return :see
+        break
       when "raise"
         return :raise
+        break
       else
         puts "Invalid choice!"
       end
@@ -111,7 +115,7 @@ end
 
 class Game
 
-  attr_accessor :current_deck, :whose_turn, :bets, :players
+  attr_accessor :current_deck, :whose_turn, :bets, :players, :folded_players
 
   def initialize(player_names)
     @current_deck = Deck.new
@@ -138,8 +142,8 @@ class Game
   end
 
   def next_turn
-    current_player = @players.index(@whose_turn)
-    @whose_turn = @players[(current_player + 1) % players.length]
+    current_player_index = @players.index(@whose_turn)
+    @whose_turn = @players[(current_player_index + 1) % @players.length]
   end
 
   def start_game
@@ -152,29 +156,44 @@ class Game
 
   def betting_round
     @players.each do |player|
+      @whose_turn = player
       choice = player.action
 
       case choice
 
       when :fold
         puts "Player #{player.name} folded."
-        @folded_players << @players.delete(player)
-        break
-
+        @folded_players << player
       when :see
         betting_see(player)
-        break
-
       when :raise
         betting_raise(player)
-        break
       end
-
-      next_turn
     end
+
+  # After betting round, remove folded players
+  @players -= @folded_players
+  # puts get_names("current")
+  end
+
+  # To get all names of player
+  def get_names(option)
+    names = []
+    if option == "current"
+      @players.each do |p|
+        names << p.name
+      end
+      return names
+    elsif option == "folded"
+        @folded_players.each do |f|
+          names << f.name
+        end
+    end
+    return names
   end
 
   private
+
   # helper for betting_round
   def betting_see(p)
     puts "The current bets made are:"
@@ -187,17 +206,19 @@ class Game
 
     # To validate that betting amount is an allowed amount
     until (get_bet <= p.pot)
+      puts "#{get_bet} #{p.pot}"
       puts "Sorry, your bet amount cannot exceed #{p.pot}"
       get_bet = gets.chomp.to_f
     end
     # Assign bet amount to player
+    p.pot -= get_bet
     @bets[p.name] = get_bet
   end
 
   # helper for betting_round
   def betting_raise(p)
     # Incase of bets being empty
-    highest_bet = bets.value.max || 0
+    highest_bet = @bets.values.max || 0
     puts "The current highest bet made is #{highest_bet}"
 
     # User will all-in if they cannot raise
@@ -206,13 +227,17 @@ class Game
       @bets[p.name] = p.pot
       p.pot = 0
     else
-      raise_bet = gets.chomp.to_f
       # To validate the raise amount is higher
-      until raise_bet > highest_bet
-        puts "Sorry, you must make a bet higher than #{highest_bet}"
+      loop do
         raise_bet = gets.chomp.to_f
+        if raise_bet > highest_bet
+          p.pot -= raise_bet
+          @bets[p.name] = raise_bet
+          break
+        else
+          puts "Sorry, you must make a bet higher than #{highest_bet}"
+        end
       end
-      @bets[p.name] = raise_bet
     end
   end
 end
