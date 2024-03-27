@@ -151,45 +151,68 @@ class Game
 
 
   def betting_round
-    loop do
-      @players.each do |player|
-        choice = player.action
+    @players.each do |player|
+      choice = player.action
 
-        case choice
+      case choice
 
-        when :fold
-          puts "Player #{player.name} folded."
-          @folded_players << Player[player].pop
-          break
+      when :fold
+        puts "Player #{player.name} folded."
+        @folded_players << @players.delete(player)
+        break
 
-        when :see
-          puts "The current bets made are:"
-          @bets.each do |name, bet|
-            puts "#{name} made betted $#{bet}"
-          end
-          puts "What amount are you betting?"
-          get_bet = gets.chomp.to_f
-          # To validate that betting amount is an allowed amount
-          until (player.pot - get_bet) > 0
-            puts "Sorry, your bet amount cannot exceed #{player.pot}"
-            get_bet = gets.chomp.to_f
-          end
-          break
+      when :see
+        betting_see(player)
+        break
 
-        when :raise
-            highest_bet = bets.value.max
-            puts "The current highest bet made is #{highest_bet}"
-            raise_bet = gets.chomp.to_f
-            until raise_bet > highest_bet
-              puts "Sorry, you must make a bet higher than #{highest_bet}"
-              raise_bet = gets.chomp.to_f
-            end
-          break
-
-        end
+      when :raise
+        betting_raise(player)
+        break
       end
+
+      next_turn
     end
-    next_turn
   end
 
+  private
+  # helper for betting_round
+  def betting_see(p)
+    puts "The current bets made are:"
+    @bets.each do |name, bet|
+      puts "#{name} made betted $#{bet}"
+    end
+
+    puts "What amount are you betting?"
+    get_bet = gets.chomp.to_f
+
+    # To validate that betting amount is an allowed amount
+    until (get_bet <= p.pot)
+      puts "Sorry, your bet amount cannot exceed #{p.pot}"
+      get_bet = gets.chomp.to_f
+    end
+    # Assign bet amount to player
+    @bets[p.name] = get_bet
+  end
+
+  # helper for betting_round
+  def betting_raise(p)
+    # Incase of bets being empty
+    highest_bet = bets.value.max || 0
+    puts "The current highest bet made is #{highest_bet}"
+
+    # User will all-in if they cannot raise
+    if p.pot < highest_bet
+      puts "Sorry, you cannot raise the bet. Betting all your pot :( "
+      @bets[p.name] = p.pot
+      p.pot = 0
+    else
+      raise_bet = gets.chomp.to_f
+      # To validate the raise amount is higher
+      until raise_bet > highest_bet
+        puts "Sorry, you must make a bet higher than #{highest_bet}"
+        raise_bet = gets.chomp.to_f
+      end
+      @bets[p.name] = raise_bet
+    end
+  end
 end
