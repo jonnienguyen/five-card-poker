@@ -154,10 +154,8 @@ RSpec.describe Game do
       allow(fakeGame.players[1]).to receive(:action).and_return(:fold)
       fakeGame.betting_round
 
-      expect(fakeGame.get_names("folded")).to include("john")
-      expect(fakeGame.get_names("current")).not_to include("john")
-      expect(fakeGame.get_names("folded")).to include("bob")
-      expect(fakeGame.get_names("current")).not_to include("bob")
+      expect(fakeGame.get_names("folded")).to include("john", "bob")
+      expect(fakeGame.get_names("current")).not_to include("john", "bob")
       # Every players has folded so should be 0
       expect(fakeGame.players.length).to eq 0
     end
@@ -191,5 +189,9 @@ RSpec.describe Game do
     end
 
 
+  end
+
+  describe "#discard_round" do
+    it ""
   end
 end

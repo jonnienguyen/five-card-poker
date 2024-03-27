@@ -80,14 +80,14 @@ class Player
   end
 
   def discard
-    puts "How many card do you wish to discard (between 0 and 3)?"
+    puts "(To #{@name}) How many card do you wish to discard (between 0 and 3)?"
     num_cards = gets.chomp.to_i
     # Check if its between 0 and 3
     until (0..3).include?(num_cards)
       puts "Sorry, enter an valid number of cards to discard:"
       num_cards = gets.chomp.to_i
     end
-
+    # Return an integer [0,3]
     return num_cards
   end
 
@@ -131,7 +131,7 @@ class Game
     # Create a Player instance for each
     @players = create_and_deal(player_names)
     # Turn is determined by the index :)
-    @whose_turn = @players.first
+    @whose_turn = @players.first.name
     @pots = 0
     @bets = {}
     # To keep track of players that folded
@@ -152,7 +152,7 @@ class Game
 
   def next_turn
     current_player_index = @players.index(@whose_turn)
-    @whose_turn = @players[(current_player_index + 1) % @players.length]
+    @whose_turn = @players[(current_player_index + 1) % @players.length].name
   end
 
   def start_game
@@ -165,7 +165,7 @@ class Game
 
   def betting_round
     @players.each do |player|
-      @whose_turn = player
+      @whose_turn = player.name
       choice = player.action
 
       case choice
@@ -188,7 +188,29 @@ class Game
   def discard_round
     @players.each do |player|
       @whose_turn = player
+      # Track the index at which player wants to discard
+      discard_holder = []
+      # Get times to discard [0,3]
+      times_discard = player.discard
+      # List the cards player has, in a nice formatted way
+      puts "\n(To #{whose_turn.name}) here are you cards:"
+      5.times do |i|
+        c = Card.new(player.hand[i])
+        puts "#{i+1} - #{c}"
+      end
 
+      # Get discard inputs
+      puts "(To #{whose_turn.name}) Using the number the left hand side, what card do you wish to discard?"
+      times_discard.times do |i|
+        puts "(##{i+1}) What card do you wish to discard:"
+        discard_input = gets.chomp.to_i
+        until !(discard_holder.include?(discard_input)) && (1..5).include?(discard_input)
+          puts "Sorry, thats an invalid number; you have already choose #{discard_holder}."
+          discard_input = gets.chomp.to_i
+        end
+        discard_holder << discard_input
+      end
+      get_new_cards(player, discard_holder)
     end
   end
 
@@ -256,4 +278,17 @@ class Game
       end
     end
   end
+
+  # helper for discard_round
+  def get_new_cards(p, discarded)
+    discarded.each do |d|
+      p.hand[d-1] = current_deck.dealCard
+    end
+    puts "(To #{p.name}): #{p.hand}"
+
+  end
 end
+
+
+g = Game.new(["john", "bob"])
+g.discard_round
