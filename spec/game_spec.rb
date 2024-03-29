@@ -29,38 +29,58 @@ RSpec.describe Deck do
 end
 
 RSpec.describe Hand do
-  let(:test_hand) {Hand.new()}
-
+  let(:tester) {Player.new(["john"])}
+  let(:test_hand) {Hand.new(tester)}
   describe "#hand_strength" do
     it "is Royal flush" do
       h = [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Royal Flush")
     end
     it "is Straight flush" do
       h = [["6" ,"Diamonds"], ["7" ,"Diamonds"], ["8" ,"Diamonds"], ["9" ,"Diamonds"], ["10" ,"Diamonds"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Straight Flush")
     end
     it "is Four of a Kind" do
       h = [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Four of a Kind")
     end
     it "is Full house" do
       h = [["Ace", "Diamonds"], ["Ace", "Clubs"], ["Ace", "Spades"], ["7", "Spades"], ["7", "Hearts"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Full House")
     end
     it "is Flush" do
       h = [["3", "Diamonds"], ["8", "Diamonds"], ["6", "Diamonds"], ["King", "Diamonds"], ["10", "Diamonds"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Flush")
     end
     it "is Straight" do
       h = [["7", "Hearts"], ["8", "Diamonds"], ["9", "Clubs"],["10", "Hearts"], ["Jack", "Spades"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Straight")
     end
     it "is Three of a kind" do
       h = [["10", "Spades"], ["10", "Diamonds"], ["10", "Clubs"], ["6", "Hearts"], ["Ace", "Spades"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Three of a Kind")
     end
     it "is Two pair" do
       h = [["6", "Spades"], ["6", "Diamonds"], ["Queen", "Clubs"], ["Queen", "Hearts"], ["King", "Hearts"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("Two Pair")
     end
     it "is Pair" do
       h = [["Jack", "Diamonds"], ["Jack", "Spades"], ["2", "Clubs"], ["9", "Hearts"], ["King", "Spades"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("One Pair")
     end
     it "is High card" do
       h = [["King", "Hearts"], ["7", "Diamonds"], ["8", "Clubs"], ["Jack", "Spades"], ["10", "Hearts"]]
+      test_hand.all_players_hand = [h]
+      expect(test_hand.hand_strength(h)).to eq("High Card")
     end
   end
 end
