@@ -21,7 +21,7 @@ class Deck
   end
 
   def createInitialDeck
-    suits = ["Diamonds", "Club", "Hearts", "Spades"]
+    suits = ["Diamonds", "Clubs", "Hearts", "Spades"]
     type_cards = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
     # To get the 56 combinations
     @complete_deck = type_cards.product(suits)
@@ -38,14 +38,8 @@ end
 class Hand
   # attr_reader :cards
   # DELETE  ????
-  def initialize
-    @player_hand = []
-  end
-  def add_card(card)
-    @player_hand << Card.new(card[0], card[1])
-  end
-  def to_s
-    hand_str = @player_hand.map(&:to_s).join(", ")
+  def initialize(all_players_hand=[])
+    @all_players_hand = all_players_hand
   end
 
   # Royal flush - 5 cards of same suits; rank 10 to ace.

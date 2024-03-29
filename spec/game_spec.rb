@@ -28,30 +28,42 @@ RSpec.describe Deck do
   end
 end
 
-# RSpec.describe Hand do
-#   describe "#decide_winner" do
-#     it "is Royal flush" do
-#     end
-#     it "is Straight flush" do
-#     end
-#     it "is Four of a Kind" do
-#     end
-#     it "is Full house" do
-#     end
-#     it "is Flush" do
-#     end
-#     it "is Straight" do
-#     end
-#     it "is Three of a kind" do
-#     end
-#     it "is Two pair" do
-#     end
-#     it "is Pair" do
-#     end
-#     it "is High card" do
-#     end
-#   end
-# end
+RSpec.describe Hand do
+  let(:test_hand) {Hand.new()}
+
+  describe "#decide_winner" do
+    it "is Royal flush" do
+      h = [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]]
+    end
+    it "is Straight flush" do
+      h = [["6" ,"Diamonds"], ["7" ,"Diamonds"], ["8" ,"Diamonds"], ["9" ,"Diamonds"], ["10" ,"Diamonds"]]
+    end
+    it "is Four of a Kind" do
+      h = [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]]
+    end
+    it "is Full house" do
+      h = [["Ace", "Diamonds"], ["Ace", "Clubs"], ["Ace", "Spades"], ["7", "Spades"], ["7", "Hearts"]]
+    end
+    it "is Flush" do
+      h = [["3", "Diamonds"], ["8", "Diamonds"], ["6", "Diamonds"], ["King", "Diamonds"], ["10", "Diamonds"]]
+    end
+    it "is Straight" do
+      h = [["7", "Hearts"], ["8", "Diamonds"], ["9", "Clubs"],["10", "Hearts"], ["Jack", "Spades"]]
+    end
+    it "is Three of a kind" do
+      h = [["10", "Spades"], ["10", "Diamonds"], ["10", "Clubs"], ["6", "Hearts"], ["Ace", "Spades"]]
+    end
+    it "is Two pair" do
+      h = [["6", "Spades"], ["6", "Diamonds"], ["Queen", "Clubs"], ["Queen", "Hearts"], ["King", "Hearts"]]
+    end
+    it "is Pair" do
+      h = [["Jack", "Diamonds"], ["Jack", "Spades"], ["2", "Clubs"], ["9", "Hearts"], ["King", "Spades"]]
+    end
+    it "is High card" do
+      h = [["King", "Hearts"], ["7", "Diamonds"], ["8", "Clubs"], ["Jack", "Spades"], ["10", "Hearts"]]
+    end
+  end
+end
 
 RSpec.describe Player do
   let(:fakePlayer) {Player.new("john", ["Ace of Spades", "7 of Diamonds", "9 of Club" "8 of Diamonds", "Ace of Club"])}
