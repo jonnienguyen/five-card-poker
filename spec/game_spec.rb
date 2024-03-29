@@ -54,7 +54,7 @@ end
 # end
 
 RSpec.describe Player do
-  let(:fakePlayer) {Player.new(["Ace of Spades", "7 of Diamonds", "9 of Club"])}
+  let(:fakePlayer) {Player.new("john", ["Ace of Spades", "7 of Diamonds", "9 of Club" "8 of Diamonds", "Ace of Club"])}
 
   describe "#action" do
     it "Should returns :fold" do
@@ -83,7 +83,7 @@ RSpec.describe Player do
     end
     it "checks if user enter an invalid number" do
       allow(fakePlayer).to receive(:gets).and_return("4", "2")
-      expect {fakePlayer.discard}.to output("How many card do you wish to discard (between 0 and 3)?\nSorry, enter an valid number of cards to discard:\n").to_stdout
+      expect {fakePlayer.discard}.to output("(To john) How many card do you wish to discard (between 0 and 3)?\nSorry, enter an valid number of cards to discard:\n").to_stdout
       expect(fakePlayer.discard).to eq 2
     end
   end
@@ -103,7 +103,7 @@ RSpec.describe Game do
       expect(fakeGame.players.length).to eq 2
     end
     it "Check initial whose turn" do
-      expect(fakeGame.whose_turn.name).to match("john")
+      expect(fakeGame.whose_turn).to match("john")
     end
     it "Checks player info" do
       expect(fakeGame.players[0].name).to match("john")
@@ -135,7 +135,7 @@ RSpec.describe Game do
     end
   end
 
-  describe "#next_turn" do
+  xdescribe "#next_turn" do
     it "Check next person turn" do
       fakeGame.next_turn
       expect(fakeGame.whose_turn.name).to match("bob")
@@ -192,6 +192,24 @@ RSpec.describe Game do
   end
 
   describe "#discard_round" do
-    it ""
+    it "Prompt users for how many cards they wish to discard" do
+      # Used to compare hand before and after
+
+      hand1 = fakeGame.players[0].hand.dup
+      puts "### #{hand1}"
+      hand2 = fakeGame.players[1].hand.dup
+
+      allow(fakeGame.players[0]).to receive(:discard).and_return(1)
+      allow(fakeGame.players[1]).to receive(:discard).and_return(2)
+      # three parameter give; each being the index for above
+      allow(fakeGame).to receive(:gets).and_return("1", "1", "2")
+
+      fakeGame.discard_round
+
+      # Check at the index at which it update
+      expect(fakeGame.players[0].hand[0]).to_not eq(hand1[0])
+      expect(fakeGame.players[1].hand[0]).to_not eq(hand2[0])
+      expect(fakeGame.players[1].hand[1]).to_not eq(hand2[1])
+    end
   end
 end

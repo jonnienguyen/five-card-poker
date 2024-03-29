@@ -150,10 +150,10 @@ class Game
     return players
   end
 
-  def next_turn
-    current_player_index = @players.index(@whose_turn)
-    @whose_turn = @players[(current_player_index + 1) % @players.length].name
-  end
+  # def next_turn
+  #   current_player_index = @players.index(@whose_turn)
+  #   @whose_turn = @players[(current_player_index + 1) % @players.length]
+  # end
 
   def start_game
     # betting_round
@@ -188,28 +188,32 @@ class Game
   def discard_round
     @players.each do |player|
       @whose_turn = player
-      # Track the index at which player wants to discard
+      # Holds the index at which player wants to discard
       discard_holder = []
       # Get times to discard [0,3]
       times_discard = player.discard
       # List the cards player has, in a nice formatted way
-      puts "\n(To #{whose_turn.name}) here are you cards:"
+
+      # TODO: Make this a method of its own ??
+      puts "\n(To #{whose_turn.name}) here are your cards:"
       5.times do |i|
         c = Card.new(player.hand[i])
         puts "#{i+1} - #{c}"
       end
 
       # Get discard inputs
-      puts "(To #{whose_turn.name}) Using the number the left hand side, what card do you wish to discard?"
+      puts "(To #{whose_turn.name}) Using the number on the left hand side, what card do you wish to discard?"
       times_discard.times do |i|
         puts "(##{i+1}) What card do you wish to discard:"
         discard_input = gets.chomp.to_i
+        # Check if index card is already choose and number is in valid range
         until !(discard_holder.include?(discard_input)) && (1..5).include?(discard_input)
           puts "Sorry, thats an invalid number; you have already choose #{discard_holder}."
           discard_input = gets.chomp.to_i
         end
         discard_holder << discard_input
       end
+
       get_new_cards(player, discard_holder)
     end
   end
@@ -281,14 +285,12 @@ class Game
 
   # helper for discard_round
   def get_new_cards(p, discarded)
+    # discard card; given player and index of card (off by 1)
     discarded.each do |d|
       p.hand[d-1] = current_deck.dealCard
     end
+    # Show the update hand for player
     puts "(To #{p.name}): #{p.hand}"
 
   end
 end
-
-
-g = Game.new(["john", "bob"])
-g.discard_round
