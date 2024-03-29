@@ -42,26 +42,76 @@ class Hand
     @all_players_hand = all_players_hand
   end
 
-  # Royal flush - 5 cards of same suits; rank 10 to ace.
+  def hand_strength(player_hand)
+    sorted_hand = sort_hand(player_hand) # Sort the player's hand by values (and replace with an integer)
+    values_order = sorted_hand.map {|value| value[0]} # 1d sorted array of values (should be all integers)
+    # map into 2d hash for occurence; then flatten into 1d hash
+    values_count = values_order.uniq.map { |x| {x=>values_order.count(x)} }.reduce({}, :merge)
+    suits_count = get_suits(sorted_hand) # Get hash of occurence of each suits
+    # puts values_order
+    # puts values_count
+    # puts suits_count
 
-  # Straight flush - 5 cards of same suits; successtive rank.
+    # Royal flush - 5 cards of same suits AND rank 10 to ace.
+    if suits_count.values.max == 5 && (values_order == [10, 11, 12, 13, 14])
+      puts "Royal flush"
+    # Straight flush - 5 cards of same suits; successive rank. should be 4 since max - min = 4
+    elsif suits_count.values.max == 5 && (values_order.max - values_order.min == 4) && values_order.uniq.length == 5
+      puts "Straight flush"
+    # Four of a Kind - any 4 matching values
+    elsif values_count.values.max == 4
+      puts "Four of a Kind"
+    # Full house - 3 cards of same values; 2 cards of different values
+    elsif values_count.values.sort == [2, 3]
+      puts "Full house"
+    # Flush - 5 cards of the same suit, values doesnt matter (tie based on rank)
+    elsif suits_count.values.max == 5
+      puts "Flush"
+    # Straight - 5 cards in sequence, more than 1 suit
+    elsif values_order.max - values_order.min == 4 && values_order.uniq.length == 5
+      puts "Straight"
+    # Three of a kind - 3 cards of the same rank in different rank
+    elsif values_count.values.max == 3
+      puts "Three of a kind"
+    # Two pair - 2 sets of cards with the same values
+    elsif values_count.values.count(2) == 2 && values_count.keys.length == 3
+      puts "Two pair"
+    # One Pair - 2 same values
+    elsif values_count.values.count(2) == 1
+      puts "One Pair"
+    # High card - None of the above combinations; determined by the highest ranking card in hand
+    else
+      puts "High card"
+    end
+  end
 
-  # Four of a Kind - 4 cards of differnt suits, same rank;
+  private
 
-  # Full house - 3 cards of same rank (each in different suit) and 2 cards of same rank (different suit)
+  def sort_hand(h)
+    custom_sort_order = {
+    "Jack" => 11,
+    "Queen" => 12,
+    "King" => 13,
+    "Ace" => 14
+  }
+    # sorted_h = h.sort_by { |value, suit| custom_sort_order[value] || value.to_i }
+    sorted_h = h.map do |value, suit|
+      [custom_sort_order[value] || value.to_i, suit]
+    end
+    return sorted_h.sort
+  end
+  def get_suits(h)
+    suit_counts = Hash.new(0)
+    h.each do |card|
+      value, suit = card
+      suit_counts[suit] += 1
+    end
+    return suit_counts
+  end
 
-  # Flush - 5 cards of the same suit, rank doesnt matter (tie based on rank)
-
-  # Straight - 5 cards in sequence, more than 1 suit
-
-  # Three of a kind - 3 cards of the same rank in different rank
-
-  # Two pair - 2 sets of cards with the same rank
-
-  # Pair - 2 differtent set of cards with same rank in differnt suits
-
-  # High card - None of the above combinations; determined by the highest ranking card in hand
-
+  def has_values?(h, values)
+    values.all? { |value| h.any? { |card_value, _| card_value == value } }
+  end
 end
 
 class Player
@@ -288,3 +338,23 @@ class Game
 
   end
 end
+
+
+# h = [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]]
+# h = [["6" ,"Diamonds"], ["7" ,"Diamonds"], ["8" ,"Diamonds"], ["9" ,"Diamonds"], ["10" ,"Diamonds"]]
+# h = [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]]
+# h = [["Ace", "Diamonds"], ["Ace", "Clubs"], ["Ace", "Spades"], ["7", "Spades"], ["7", "Hearts"]]
+# h = [["3", "Diamonds"], ["8", "Diamonds"], ["6", "Diamonds"], ["King", "Diamonds"], ["10", "Diamonds"]]
+# h = [["7", "Hearts"], ["8", "Diamonds"], ["9", "Clubs"],["10", "Hearts"], ["Jack", "Spades"]]
+# h = [["10", "Spades"], ["10", "Diamonds"], ["10", "Clubs"], ["6", "Hearts"], ["Ace", "Spades"]]
+h = [["6", "Spades"], ["6", "Diamonds"], ["Queen", "Clubs"], ["Queen", "Hearts"], ["King", "Hearts"]]
+h = [["Jack", "Diamonds"], ["Jack", "Spades"], ["2", "Clubs"], ["9", "Hearts"], ["King", "Spades"]]
+
+
+new_hand = Hand.new(h)
+new_hand.hand_strength(h)
+
+
+# arr = [1,1,2,2,3,4,1,2]
+# arr2 = arr.uniq.map { |x| {x =>arr.count(x)} }.reduce({}, :merge)
+# print arr2

@@ -31,7 +31,7 @@ end
 RSpec.describe Hand do
   let(:test_hand) {Hand.new()}
 
-  describe "#decide_winner" do
+  describe "#hand_strength" do
     it "is Royal flush" do
       h = [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]]
     end
