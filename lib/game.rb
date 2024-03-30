@@ -31,6 +31,7 @@ class Deck
   end
 
   def dealCard
+    # Since it already shuffle; it gets the last card but same idea :/
     @complete_deck.pop
   end
 
@@ -39,17 +40,20 @@ end
 class Hand
   attr_accessor :all_players_hand, :players_result
   def initialize(all_players_hand=[])
+    # Pass in all players from Game
     @all_players_hand = all_players_hand
+    # Used to store each player's strength
     @players_result = {}
   end
 
   def determine_players_strength
-    # players_result = {}
+    # Iterate and gets each player's strength then store it
     @all_players_hand.each do |p|
       result = hand_strength(p.hand)
+      # result is a array: (0) int to determine winner at end; (1) name of hand strength
       @players_result[p.name] = result
     end
-    # return players_result.sort_by{ |p, result| result[0] }.reverse.to_h
+
   end
 
   def hand_strength(p_hand)
@@ -98,7 +102,7 @@ class Hand
   def winners
     # Since determine_players_strength sorted by highest already
     highest_rank = @players_result.values[0][0]
-    puts "#{@players_result}; #{highest_rank}"
+    # Gets a list of of winner(s)
     the_winners = @players_result.filter {|k, v| v[0] == highest_rank}
     return the_winners
   end
@@ -128,7 +132,6 @@ class Hand
     end
     return suit_counts
   end
-
 end
 
 class Player
@@ -137,10 +140,11 @@ class Player
   def initialize(name, hand = [], pot = 1000)
     @name = name
     @hand = hand
-    @pot = pot
+    @pot = pot # Set default
   end
 
   def discard
+    # prompt player for card they wish to dicard
     puts "(To #{@name}) How many card do you wish to discard (between 0 and 3)?"
     num_cards = gets.chomp.to_i
     # Check if its between 0 and 3
@@ -181,6 +185,14 @@ class Player
       end
     end
   end
+
+  def display_hand
+    puts "\n(To #{@name}) here are your cards:"
+    5.times do |i|
+      c = Card.new(hand[i])
+      puts "#{i+1} - #{c}"
+    end
+  end
 end
 
 class Game
@@ -212,6 +224,7 @@ class Game
   end
 
   def start_game
+    # To simulate the flow of the game
     betting_round
     discard_round
     betting_round
@@ -222,6 +235,8 @@ class Game
   def betting_round
     @players.each do |player|
       @whose_turn = player.name
+      player.display_hand
+      # Get choice from Player class; three cases
       choice = player.action
 
       case choice
@@ -234,7 +249,7 @@ class Game
       when :raise
         betting_raise(player)
       end
-
+      # After add all bets to total pot
       @total_pots = @bets.values.sum
     end
 
@@ -251,13 +266,7 @@ class Game
       # Get times to discard [0,3]
       times_discard = player.discard
       # List the cards player has, in a nice formatted way
-
-      # TODO: Make this a method of its own ??
-      puts "\n(To #{whose_turn.name}) here are your cards:"
-      5.times do |i|
-        c = Card.new(player.hand[i])
-        puts "#{i+1} - #{c}"
-      end
+      player.display_hand
 
       # Get discard inputs
       puts "(To #{whose_turn.name}) Using the number on the left hand side, what card do you wish to discard?"
@@ -271,7 +280,7 @@ class Game
         end
         discard_holder << discard_input
       end
-
+      # After call helper to deal new card to player
       get_new_cards(player, discard_holder)
     end
   end
@@ -280,14 +289,19 @@ class Game
     puts "Time for the showdown!\n"
 
     result_hand = Hand.new(@players)
+    # Gets each player hand strength
     result_hand.determine_players_strength
+    # Get a list of winner(s)
     win_result = result_hand.winners
 
+    # Iterate to show each player's strength
     result_hand.players_result.each do |player|
       puts "To #{player[0]}, your hand strength is #{player[1][1]}"
     end
 
+
     puts "\nThe winner(s) of the Game is"
+    # In case there are multiple winners
     share_pot = @total_pots / win_result.length
 
     win_result.each do |winner_name, w_result|
@@ -298,15 +312,16 @@ class Game
 
     puts "\nHere are your pots after the game"
     @players.each do |player|
+      # condition if it's the winner; if so then add the pot to them
       if win_result.keys.include?(player.name)
         player.pot += share_pot
       end
       puts "#{player.name} has #{player.pot} left."
     end
-
-
   end
-  # To get all names of player
+
+  # Helper To get all names of player
+  # Option to make it easier to display current players and the folded players
   def get_names(option)
     names = []
     if option == "current"
@@ -323,8 +338,7 @@ class Game
   end
 
   private
-
-  # helper for betting_round
+  # helper for betting_round; the logic and makes main method nicer.
   def betting_see(p)
     puts "The current bets made are:"
     @bets.each do |name, bet|
