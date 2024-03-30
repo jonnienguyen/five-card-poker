@@ -33,14 +33,14 @@ RSpec.describe Hand do
   let(:test_hand) {Hand.new(tester)}
 
   describe "#determine_players_strength" do
-  let(:other_tester1) {Player.new(["ada"], [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]])}
-  let(:other_tester2) {Player.new(["bob"], [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]])}
+  let(:other_tester1) {Player.new(["bob"], [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]])}
+  let(:other_tester2) {Player.new(["ada"], [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]])}
   let(:test_hand2) {Hand.new([other_tester1, other_tester2])}
 
     it "Should return the proper result of each players' strength" do
       test_hand2.determine_players_strength
       # puts test_hand2.players_result
-      expect(test_hand2.players_result).to eq({other_tester1.name=> [10, "Royal Flush"], other_tester2.name=>[8, "Four of a Kind"]})
+      expect(test_hand2.players_result).to eq({other_tester2.name=> [10, "Royal Flush"], other_tester1.name=>[8, "Four of a Kind"]})
     end
   end
 
@@ -238,6 +238,24 @@ RSpec.describe Game do
       expect(fakeGame.players[0].hand[0]).to_not eq(hand1[0])
       expect(fakeGame.players[1].hand[0]).to_not eq(hand2[0])
       expect(fakeGame.players[1].hand[1]).to_not eq(hand2[1])
+    end
+  end
+
+  describe "#showdown" do
+  # I didnt know how to test this since my players' hand are random;
+  # So I thought check if pot at the end is correct?
+    it "distributes the pot to the winner(s)" do
+      fakeGame.total_pots = 123
+
+      fakeGame.showdown
+      highest_pot = 0
+      fakeGame.players.each do |x|
+        if x.pot >= highest_pot
+          highest_pot = x.pot
+        end
+      end
+
+      expect([1061, 1123]).to include(highest_pot)
     end
   end
 end

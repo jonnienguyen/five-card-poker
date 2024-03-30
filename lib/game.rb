@@ -1,5 +1,5 @@
 class Card
-  # NEEDED ?
+
   attr_reader :value, :suit
   # Pass in a unformatted card (array)
   def initialize(card)
@@ -21,6 +21,7 @@ class Deck
   end
 
   def createInitialDeck
+    # Create the deck of all different combination
     suits = ["Diamonds", "Clubs", "Hearts", "Spades"]
     type_cards = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
     # To get the 56 combinations
@@ -95,11 +96,16 @@ class Hand
   end
 
   def winners
-
+    # Since determine_players_strength sorted by highest already
+    highest_rank = @players_result.values[0][0]
+    puts "#{@players_result}; #{highest_rank}"
+    the_winners = @players_result.filter {|k, v| v[0] == highest_rank}
+    return the_winners
   end
 
   private
 
+  # Helper to sort hand AND values to integer
   def sort_hand(h)
     custom_sort_order = {
     "Jack" => 11,
@@ -113,6 +119,7 @@ class Hand
     end
     return sorted_h.sort
   end
+  # Helper to get suits occurence
   def get_suits(h)
     suit_counts = Hash.new(0)
     h.each do |card|
@@ -122,9 +129,6 @@ class Hand
     return suit_counts
   end
 
-  def has_values?(h, values)
-    values.all? { |value| h.any? { |card_value, _| card_value == value } }
-  end
 end
 
 class Player
@@ -181,7 +185,7 @@ end
 
 class Game
 
-  attr_accessor :current_deck, :whose_turn, :bets, :players, :folded_players
+  attr_accessor :current_deck, :whose_turn, :bets, :players, :folded_players, :total_pots
 
   def initialize(player_names)
     @current_deck = Deck.new
@@ -189,7 +193,7 @@ class Game
     @players = create_and_deal(player_names)
     # Turn is determined by the index :)
     @whose_turn = @players.first.name
-    @pots = 0
+    @total_pots = 0
     @bets = {}
     # To keep track of players that folded
     @folded_players = []
@@ -208,10 +212,10 @@ class Game
   end
 
   def start_game
-    # betting_round
-    # discard_round
-    # betting_round
-    # showdown
+    betting_round
+    discard_round
+    betting_round
+    showdown
   end
 
 
@@ -230,6 +234,8 @@ class Game
       when :raise
         betting_raise(player)
       end
+
+      @total_pots = @bets.values.sum
     end
 
   # After betting round, remove folded players
@@ -272,8 +278,31 @@ class Game
 
   def showdown
     puts "Time for the showdown!\n"
-    Hand.new(@players)
-    strength_result = Hand.determine_players_strength
+
+    result_hand = Hand.new(@players)
+    result_hand.determine_players_strength
+    win_result = result_hand.winners
+
+    result_hand.players_result.each do |player|
+      puts "To #{player[0]}, your hand strength is #{player[1][1]}"
+    end
+
+    puts "\nThe winner(s) of the Game is"
+    share_pot = @total_pots / win_result.length
+
+    win_result.each do |winner_name, w_result|
+      puts "#{winner_name} with #{w_result[1]}"
+
+      # @players[winner_name].pot += share_pot.to_f
+    end
+
+    puts "\nHere are your pots after the game"
+    @players.each do |player|
+      if win_result.keys.include?(player.name)
+        player.pot += share_pot
+      end
+      puts "#{player.name} has #{player.pot} left."
+    end
 
 
   end
