@@ -319,7 +319,6 @@ class Game
       puts "#{player.name} has #{player.pot} left."
     end
   end
-
   # Helper To get all names of player
   # Option to make it easier to display current players and the folded players
   def get_names(option)
@@ -338,7 +337,8 @@ class Game
   end
 
   private
-  # helper for betting_round; the logic and makes main method nicer.
+
+  # helper for betting_round
   def betting_see(p)
     puts "The current bets made are:"
     @bets.each do |name, bet|
