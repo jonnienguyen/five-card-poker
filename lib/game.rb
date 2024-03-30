@@ -36,14 +36,21 @@ class Deck
 end
 
 class Hand
-  attr_accessor :all_players_hand
+  attr_accessor :all_players_hand, :players_result
   def initialize(all_players_hand=[])
     @all_players_hand = all_players_hand
+    @players_result = {}
   end
 
-  def determine_players_strength(players)
-
+  def determine_players_strength
+    # players_result = {}
+    @all_players_hand.each do |p|
+      result = hand_strength(p.hand)
+      @players_result[p.name] = result
+    end
+    # return players_result.sort_by{ |p, result| result[0] }.reverse.to_h
   end
+
   def hand_strength(p_hand)
     sorted_hand = sort_hand(p_hand) # Sort the player's hand by values (and replace with an integer)
     values_order = sorted_hand.map {|value| value[0]} # 1d sorted array of values (should be all integers)
@@ -56,37 +63,40 @@ class Hand
 
     # Royal flush - 5 cards of same suits AND rank 10 to ace.
     if suits_count.values.max == 5 && (values_order == [10, 11, 12, 13, 14])
-      return "Royal Flush"
+      return [10, "Royal Flush"]
     # Straight flush - 5 cards of same suits; successive rank. should be 4 since max - min = 4
     elsif suits_count.values.max == 5 && (values_order.max - values_order.min == 4) && values_order.uniq.length == 5
-      return "Straight Flush"
+      return [9, "Straight Flush"]
     # Four of a Kind - any 4 matching values
     elsif values_count.values.max == 4
-      return "Four of a Kind"
+      return [8, "Four of a Kind"]
     # Full house - 3 cards of same values; 2 cards of different values
     elsif values_count.values.sort == [2, 3]
-      return "Full House"
+      return [7, "Full House"]
     # Flush - 5 cards of the same suit, values doesnt matter (tie based on rank)
     elsif suits_count.values.max == 5
-      return "Flush"
+      return [6, "Flush"]
     # Straight - 5 cards in sequence, more than 1 suit
     elsif values_order.max - values_order.min == 4 && values_order.uniq.length == 5
-      return "Straight"
+      return [5, "Straight"]
     # Three of a kind - 3 cards of the same rank in different rank
     elsif values_count.values.max == 3
-      return "Three of a Kind"
+      return [4, "Three of a Kind"]
     # Two pair - 2 sets of cards with the same values
     elsif values_count.values.count(2) == 2 && values_count.keys.length == 3
-      return "Two Pair"
+      return [3, "Two Pair"]
     # One Pair - 2 same values
     elsif values_count.values.count(2) == 1
-      return "One Pair"
+      return [2, "One Pair"]
     # High card - None of the above combinations; determined by the highest ranking card in hand
     else
-      return "High Card"
+      return [1, "High Card"]
     end
   end
 
+  def winners
+
+  end
 
   private
 
@@ -197,11 +207,6 @@ class Game
     return players
   end
 
-  # def next_turn
-  #   current_player_index = @players.index(@whose_turn)
-  #   @whose_turn = @players[(current_player_index + 1) % @players.length]
-  # end
-
   def start_game
     # betting_round
     # discard_round
@@ -265,6 +270,13 @@ class Game
     end
   end
 
+  def showdown
+    puts "Time for the showdown!\n"
+    Hand.new(@players)
+    strength_result = Hand.determine_players_strength
+
+
+  end
   # To get all names of player
   def get_names(option)
     names = []
