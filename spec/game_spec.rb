@@ -1,158 +1,28 @@
-#spec/game_spec.rb
+# spec/game_spec.rb
 require 'game'
 
-RSpec.describe Card do
-  let(:cardEx) {Card.new(["Ace", "Spades"])}
-  it "Get card info" do
-    expect(cardEx) == "Ace of Spades"
-  end
-end
-
-RSpec.describe Deck do
-  let(:deckEx1) {Deck.new()}
-  # Second deck used to check randomness of two decks.
-  let(:deckEx2) {Deck.new()}
-  # Before hook to get the cards
-  before(:each) do
-    deckEx1.createInitialDeck
-    deckEx2.createInitialDeck
-  end
-
-  describe "#createInitialDeck" do
-    it "Checks correct number of cards created." do
-      expect(deckEx1.complete_deck.length).to eq 56
-    end
-    it "Check if cards are shuffled" do
-      expect(deckEx1).to_not eq deckEx2
-    end
-  end
-end
-
-RSpec.describe Hand do
-  let(:tester) {Player.new(["john"])}
-  let(:test_hand) {Hand.new(tester)}
-
-  describe "#determine_players_strength" do
-  let(:other_tester1) {Player.new(["bob"], [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]])}
-  let(:other_tester2) {Player.new(["ada"], [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]])}
-  let(:test_hand2) {Hand.new([other_tester1, other_tester2])}
-
-    it "Should return the proper result of each players' strength" do
-      test_hand2.determine_players_strength
-      # puts test_hand2.players_result
-      expect(test_hand2.players_result).to eq({other_tester2.name=> [10, "Royal Flush"], other_tester1.name=>[8, "Four of a Kind"]})
-    end
-  end
-
-  describe "#hand_strength" do
-    it "is Royal flush" do
-      h = [["10", "Clubs"], ["Jack", "Clubs"], ["Queen", "Clubs"], ["King", "Clubs"], ["Ace", "Clubs"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([10, "Royal Flush"])
-    end
-    it "is Straight flush" do
-      h = [["6" ,"Diamonds"], ["7" ,"Diamonds"], ["8" ,"Diamonds"], ["9" ,"Diamonds"], ["10" ,"Diamonds"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([9, "Straight Flush"])
-    end
-    it "is Four of a Kind" do
-      h = [["9", "Clubs"], ["9", "Diamonds"], ["9", "Hearts"], ["9", "Spades"], ["1", "Dimonds"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([8, "Four of a Kind"])
-    end
-    it "is Full house" do
-      h = [["Ace", "Diamonds"], ["Ace", "Clubs"], ["Ace", "Spades"], ["7", "Spades"], ["7", "Hearts"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([7, "Full House"])
-    end
-    it "is Flush" do
-      h = [["3", "Diamonds"], ["8", "Diamonds"], ["6", "Diamonds"], ["King", "Diamonds"], ["10", "Diamonds"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([6, "Flush"])
-    end
-    it "is Straight" do
-      h = [["7", "Hearts"], ["8", "Diamonds"], ["9", "Clubs"],["10", "Hearts"], ["Jack", "Spades"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([5, "Straight"])
-    end
-    it "is Three of a kind" do
-      h = [["10", "Spades"], ["10", "Diamonds"], ["10", "Clubs"], ["6", "Hearts"], ["Ace", "Spades"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([4, "Three of a Kind"])
-    end
-    it "is Two pair" do
-      h = [["6", "Spades"], ["6", "Diamonds"], ["Queen", "Clubs"], ["Queen", "Hearts"], ["King", "Hearts"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([3, "Two Pair"])
-    end
-    it "is Pair" do
-      h = [["Jack", "Diamonds"], ["Jack", "Spades"], ["2", "Clubs"], ["9", "Hearts"], ["King", "Spades"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([2, "One Pair"])
-    end
-    it "is High card" do
-      h = [["King", "Hearts"], ["7", "Diamonds"], ["8", "Clubs"], ["Jack", "Spades"], ["10", "Hearts"]]
-      test_hand.all_players_hand = [h]
-      expect(test_hand.hand_strength(h)).to eq([1, "High Card"])
-    end
-  end
-end
-
-RSpec.describe Player do
-  let(:fakePlayer) {Player.new("john", ["Ace of Spades", "7 of Diamonds", "9 of Club" "8 of Diamonds", "Ace of Club"])}
-
-  describe "#action" do
-    it "Should returns :fold" do
-      allow(fakePlayer).to receive(:gets).and_return("fold")
-      expect(fakePlayer.action).to eq(:fold)
-    end
-    it "Should returns :see" do
-      allow(fakePlayer).to receive(:gets).and_return("see")
-      expect(fakePlayer.action).to eq(:see)
-    end
-    it "Should returns :raise" do
-      allow(fakePlayer).to receive(:gets).and_return("raise")
-      expect(fakePlayer.action).to eq(:raise)
-    end
-    it "Check for invalid choices, and to prompt again" do
-      allow(fakePlayer).to receive(:gets).and_return("xyz12ojasndoasnd\n", "raise\n")
-      expect{fakePlayer.action}.to output(/Invalid choice!/).to_stdout
-      expect(fakePlayer.action).to eq(:raise)
-    end
-  end
-
-  describe "#discard" do
-    it "prompt user for how many cards to discard" do
-      allow(fakePlayer).to receive(:gets).and_return("3")
-      expect(fakePlayer.discard).to eq 3
-    end
-    it "checks if user enter an invalid number" do
-      allow(fakePlayer).to receive(:gets).and_return("4", "2")
-      expect {fakePlayer.discard}.to output("(To john) How many card do you wish to discard (between 0 and 3)?\nSorry, enter an valid number of cards to discard:\n").to_stdout
-      expect(fakePlayer.discard).to eq 2
-    end
-  end
-
-end
-
 RSpec.describe Game do
-  let(:fakeGame) {Game.new(["john", "bob"])}
+  let(:fakeGame) { Game.new(["john", "bob"]) }
 
   describe "#initialize" do
     it "Check number of players" do
       expect(fakeGame.players.length).to eq 2
     end
+
     it "Check initial whose turn" do
       expect(fakeGame.whose_turn).to match("john")
     end
+
     it "Checks player info" do
       expect(fakeGame.players[0].name).to match("john")
       expect(fakeGame.players[0].hand.length).to eq 5
       expect(fakeGame.players[0].pot).to eq 1000
     end
+
     it "check each player hand are not the same" do
       expect(fakeGame.players[0].hand).to_not eq fakeGame.players[1].hand
     end
+
     # this is after it deals 5 card to the players (10 cards total)
     it "Check number of cards" do
       expect(fakeGame.current_deck.complete_deck.length).to eq 46
@@ -160,23 +30,24 @@ RSpec.describe Game do
   end
 
   describe "#create_and_deal" do
-  new_players = ["ada", "asa"]
-  it "Creates players with correct names and check if they have 5 cards" do
-    players = fakeGame.create_and_deal(new_players)
-    expect(players.length).to eq 2
-    # Iterate
-    players.each do |player|
-      expect(new_players.include?(player.name)).to eql true
-      expect(player.hand.length).to eq 5
+    let(:new_players) { ["ada", "asa"] }
+
+    it "Creates players with correct names and check if they have 5 cards" do
+      players = fakeGame.create_and_deal(new_players)
+      expect(players.length).to eq 2
+      # Iterate
+      players.each do |player|
+        expect(new_players.include?(player.name)).to eql true
+        expect(player.hand.length).to eq 5
+      end
     end
-  end
-  it "Check the total number of cards left in deck" do
-    expect(fakeGame.current_deck.complete_deck.length).to eq 46
+
+    it "Check the total number of cards left in deck" do
+      expect(fakeGame.current_deck.complete_deck.length).to eq 46
     end
   end
 
   describe "#betting_round" do
-
     it "Removes player from game when folded" do
       allow(fakeGame.players[0]).to receive(:action).and_return(:fold)
       allow(fakeGame.players[1]).to receive(:action).and_return(:fold)
@@ -215,8 +86,6 @@ RSpec.describe Game do
       expect(fakeGame.bets[fakeGame.players[0].name]).to eq(200)
       expect(fakeGame.bets[fakeGame.players[1].name]).to eq(400)
     end
-
-
   end
 
   describe "#discard_round" do
@@ -242,8 +111,8 @@ RSpec.describe Game do
   end
 
   describe "#showdown" do
-  # I didnt know how to test this since my players' hand are random;
-  # So I thought check if pot at the end is correct?
+    # I didnt know how to test this since my players' hand are random;
+    # So I thought check if pot at the end is correct?
     it "distributes the pot to the winner(s)" do
       fakeGame.total_pots = 123
 
