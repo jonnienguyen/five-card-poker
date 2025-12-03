@@ -1,60 +1,41 @@
 class Player
+  VALID_ACTIONS = ["fold", "see", "raise"].freeze
+  MAX_DISCARD = 3
+  INITIAL_POT = 1000
+
   attr_accessor :name, :hand, :pot
 
-  def initialize(name, hand = [], pot = 1000)
+  def initialize(name, hand = [], pot = INITIAL_POT)
     @name = name
     @hand = hand
-    @pot = pot # Set default
+    @pot = pot
   end
 
-  def discard
-    # prompt player for card they wish to dicard
-    puts "(To #{@name}) How many card do you wish to discard (between 0 and 3)?"
-    num_cards = gets.chomp.to_i
-    # Check if its between 0 and 3
-    until (0..3).include?(num_cards)
-      puts "Sorry, enter an valid number of cards to discard:"
-      num_cards = gets.chomp.to_i
+  def get_discard_count
+    loop do
+      puts "(To #{@name}) How many cards do you wish to discard (0-#{MAX_DISCARD})?"
+      input = gets.chomp.to_i
+
+      return input if (0..MAX_DISCARD).include?(input)
+      puts "Invalid input. Please enter a number between 0 and #{MAX_DISCARD}."
     end
-    # Return an integer [0,3]
-    return num_cards
   end
 
-  def action
-    menu =
-    "
-    Three Options:
-    1. Fold: Discard hand, foreit the current pot
-    2. See current bet (Call): See currnet bets, and match current highest bet
-    3. Raise: Increase current highest bet
-    "
-    while true
-      # Continues to prompt user for input if invalid;
-      # else returns therefore ending loop
-      # puts menu
+  def get_action
+    loop do
+      puts "\n(To #{@name}) Choose an action: fold, see, or raise"
       choice = gets.downcase.chomp
 
-      case choice
-      when "fold"
-        return :fold
-        break
-      when "see"
-        return :see
-        break
-      when "raise"
-        return :raise
-        break
-      else
-        puts "Invalid choice!"
-      end
+      return choice.to_sym if VALID_ACTIONS.include?(choice)
+      puts "Invalid choice! Please enter: #{VALID_ACTIONS.join(', ')}"
     end
   end
 
   def display_hand
-    puts "\n(To #{@name}) here are your cards:"
-    5.times do |i|
-      c = Card.new(hand[i])
-      puts "#{i+1} - #{c}"
+    puts "\n(To #{@name}) Here are your cards:"
+    @hand.each_with_index do |card, index|
+      card_obj = Card.new(card)
+      puts "#{index + 1} - #{card_obj}"
     end
   end
 end

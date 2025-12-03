@@ -1,201 +1,203 @@
 class Game
-
-  attr_accessor :current_deck, :whose_turn, :bets, :players, :folded_players, :total_pots
+  attr_accessor :deck, :players, :current_turn_player
+  attr_reader :folded_players, :bets, :pot
 
   def initialize(player_names)
-    @current_deck = Deck.new
-    # Create a Player instance for each
-    @players = create_and_deal(player_names)
-    # Turn is determined by the index :)
-    @whose_turn = @players.first.name
-    @total_pots = 0
+    @deck = Deck.new
+    @players = create_players_and_deal(player_names)
+    @current_turn_player = @players.first
     @bets = {}
-    # To keep track of players that folded
     @folded_players = []
+    @pot = 0
   end
 
-  def create_and_deal(player_names)
-    # Create Player with an intital 5 cards
-    players = []
-    player_names.each do |name|
-      name = Player.new(name)
-      # Draw 5 cards each
-      5.times {name.hand << @current_deck.dealCard}
-      players << name
-    end
-    return players
-  end
-
-  def start_game
-    # To simulate the flow of the game
+  def play
     betting_round
     discard_round
     betting_round
     showdown
   end
 
+  private
+
+  def create_players_and_deal(player_names)
+    players = player_names.map { |name| Player.new(name) }
+    deal_initial_hands(players)
+    players
+  end
+
+  def deal_initial_hands(players)
+    players.each do |player|
+      5.times { player.hand << @deck.deal_card }
+    end
+  end
 
   def betting_round
     @players.each do |player|
-      @whose_turn = player.name
+      @current_turn_player = player
       player.display_hand
-      # Get choice from Player class; three cases
-      choice = player.action
 
-      case choice
+      action = player.get_action
 
+      case action
       when :fold
-        puts "Player #{player.name} folded."
-        @folded_players << player
+        handle_fold(player)
       when :see
-        betting_see(player)
+        handle_see(player)
       when :raise
-        betting_raise(player)
+        handle_raise(player)
       end
-      # After add all bets to total pot
-      @total_pots = @bets.values.sum
+
+      update_pot
     end
 
-  # After betting round, remove folded players
-  @players -= @folded_players
-  # puts get_names("current")
+    remove_folded_players
+  end
+
+  def handle_fold(player)
+    puts "\nPlayer #{player.name} folded."
+    @folded_players << player
+  end
+
+  def handle_see(player)
+    display_current_bets
+    bet_amount = get_valid_bet_amount(player)
+    place_bet(player, bet_amount)
+  end
+
+  def handle_raise(player)
+    highest_bet = @bets.values.max || 0
+    puts "\nThe current highest bet is: $#{highest_bet}"
+
+    if player.pot < highest_bet
+      puts "You cannot raise. Going all-in with $#{player.pot}"
+      place_bet(player, player.pot)
+    else
+      bet_amount = get_raise_amount(player, highest_bet)
+      place_bet(player, bet_amount)
+    end
+  end
+
+  def get_valid_bet_amount(player)
+    loop do
+      puts "How much would you like to bet? (Max: $#{player.pot})"
+      bet = gets.chomp.to_f
+
+      return bet if bet <= player.pot && bet > 0
+      puts "Invalid amount. Must be between $0 and $#{player.pot}"
+    end
+  end
+
+  def get_raise_amount(player, minimum)
+    loop do
+      puts "Enter raise amount (must be greater than $#{minimum}):"
+      bet = gets.chomp.to_f
+
+      return bet if bet > minimum && bet <= player.pot
+      puts "Invalid raise. Must be more than $#{minimum} and at most $#{player.pot}"
+    end
+  end
+
+  def place_bet(player, amount)
+    player.pot -= amount
+    @bets[player.name] = amount
+  end
+
+  def display_current_bets
+    return if @bets.empty?
+
+    puts "\nCurrent bets:"
+    @bets.each { |name, amount| puts "  #{name}: $#{amount}" }
+  end
+
+  def update_pot
+    @pot = @bets.values.sum
+  end
+
+  def remove_folded_players
+    @players -= @folded_players
   end
 
   def discard_round
     @players.each do |player|
-      @whose_turn = player
-      # Holds the index at which player wants to discard
-      discard_holder = []
-      # Get times to discard [0,3]
-      times_discard = player.discard
-      # List the cards player has, in a nice formatted way
+      @current_turn_player = player
       player.display_hand
 
-      # Get discard inputs
-      puts "(To #{whose_turn.name}) Using the number on the left hand side, what card do you wish to discard?"
-      times_discard.times do |i|
-        puts "(##{i+1}) What card do you wish to discard:"
-        discard_input = gets.chomp.to_i
-        # Check if index card is already choose and number is in valid range
-        until !(discard_holder.include?(discard_input)) && (1..5).include?(discard_input)
-          puts "Sorry, thats an invalid number; you have already choose #{discard_holder}."
-          discard_input = gets.chomp.to_i
-        end
-        discard_holder << discard_input
-      end
-      # After call helper to deal new card to player
-      get_new_cards(player, discard_holder)
+      discard_indices = get_discard_indices(player)
+      replace_cards(player, discard_indices)
     end
+  end
+
+  def get_discard_indices(player)
+    count = player.get_discard_count
+    return [] if count.zero?
+
+    indices = []
+    count.times do |i|
+      loop do
+        puts "(Discard #{i + 1}/#{count}) Enter card number to discard (1-5):"
+        index = gets.chomp.to_i
+
+        if (1..5).include?(index) && !indices.include?(index)
+          indices << index
+          break
+        else
+          puts "Invalid input or already selected."
+        end
+      end
+    end
+    indices
+  end
+
+  def replace_cards(player, discard_indices)
+    discard_indices.each do |index|
+      player.hand[index - 1] = @deck.deal_card
+    end
+    puts "\n(To #{player.name}) Your updated hand:"
+    player.display_hand
   end
 
   def showdown
-    puts "Time for the showdown!\n"
+    puts "\n========== SHOWDOWN =========="
 
-    result_hand = Hand.new(@players)
-    # Gets each player hand strength
-    result_hand.determine_players_strength
-    # Get a list of winner(s)
-    win_result = result_hand.winners
+    hand_evaluator = Hand.new(@players)
+    hand_evaluator.evaluate_all_hands
+    winners = hand_evaluator.winners
 
-    # Iterate to show each player's strength
-    result_hand.players_result.each do |player|
-      puts "To #{player[0]}, your hand strength is #{player[1][1]}"
+    display_hand_rankings(hand_evaluator)
+    distribute_pot(winners)
+  end
+
+  def display_hand_rankings(hand_evaluator)
+    puts "\nHand Rankings:"
+    hand_evaluator.results.each do |name, result|
+      hand_type = result[1]
+      puts "  #{name}: #{hand_type}"
+    end
+  end
+
+  def distribute_pot(winners)
+    share_per_winner = @pot / winners.length
+
+    puts "\nWinners:"
+    winners.each do |name, result|
+      hand_type = result[1]
+      puts "  #{name} wins with #{hand_type}!"
     end
 
-
-    puts "\nThe winner(s) of the Game is"
-    # In case there are multiple winners
-    share_pot = @total_pots / win_result.length
-
-    win_result.each do |winner_name, w_result|
-      puts "#{winner_name} with #{w_result[1]}"
-
-      # @players[winner_name].pot += share_pot.to_f
-    end
-
-    puts "\nHere are your pots after the game"
     @players.each do |player|
-      # condition if it's the winner; if so then add the pot to them
-      if win_result.keys.include?(player.name)
-        player.pot += share_pot
-      end
-      puts "#{player.name} has #{player.pot} left."
-    end
-  end
-  # Helper To get all names of player
-  # Option to make it easier to display current players and the folded players
-  def get_names(option)
-    names = []
-    if option == "current"
-      @players.each do |p|
-        names << p.name
-      end
-      return names
-    elsif option == "folded"
-        @folded_players.each do |f|
-          names << f.name
-        end
-    end
-    return names
-  end
-
-  private
-
-  # helper for betting_round
-  def betting_see(p)
-    puts "The current bets made are:"
-    @bets.each do |name, bet|
-      puts "#{name} made betted $#{bet}"
-    end
-
-    puts "What amount are you betting?"
-    get_bet = gets.chomp.to_f
-
-    # To validate that betting amount is an allowed amount
-    until (get_bet <= p.pot)
-      puts "#{get_bet} #{p.pot}"
-      puts "Sorry, your bet amount cannot exceed #{p.pot}"
-      get_bet = gets.chomp.to_f
-    end
-    # Assign bet amount to player
-    p.pot -= get_bet
-    @bets[p.name] = get_bet
-  end
-
-  # helper for betting_round
-  def betting_raise(p)
-    # Incase of bets being empty
-    highest_bet = @bets.values.max || 0
-    puts "The current highest bet made is #{highest_bet}"
-
-    # User will all-in if they cannot raise
-    if p.pot < highest_bet
-      puts "Sorry, you cannot raise the bet. Betting all your pot :( "
-      @bets[p.name] = p.pot
-      p.pot = 0
-    else
-      # To validate the raise amount is higher
-      loop do
-        raise_bet = gets.chomp.to_f
-        if raise_bet > highest_bet
-          p.pot -= raise_bet
-          @bets[p.name] = raise_bet
-          break
-        else
-          puts "Sorry, you must make a bet higher than #{highest_bet}"
-        end
+      if winners.key?(player.name)
+        player.pot += share_per_winner
       end
     end
+
+    display_final_pots
   end
 
-  # helper for discard_round
-  def get_new_cards(p, discarded)
-    # discard card; given player and index of card (off by 1)
-    discarded.each do |d|
-      p.hand[d-1] = current_deck.dealCard
+  def display_final_pots
+    puts "\nFinal Pots:"
+    @players.each do |player|
+      puts "  #{player.name}: $#{player.pot}"
     end
-    # Show the update hand for player
-    puts "(To #{p.name}): #{p.hand}"
-
   end
 end

@@ -1,42 +1,98 @@
 # spec/player_spec.rb
 require 'player'
+require 'card'
 
 RSpec.describe Player do
-  let(:fakePlayer) { Player.new("john", ["Ace of Spades", "7 of Diamonds", "9 of Club" "8 of Diamonds", "Ace of Club"]) }
+  let(:player) { Player.new("Alice", [], 1000) }
 
-  describe "#action" do
-    it "Should returns :fold" do
-      allow(fakePlayer).to receive(:gets).and_return("fold")
-      expect(fakePlayer.action).to eq(:fold)
+  describe "#initialize" do
+    it "creates player with correct name" do
+      expect(player.name).to eq("Alice")
     end
 
-    it "Should returns :see" do
-      allow(fakePlayer).to receive(:gets).and_return("see")
-      expect(fakePlayer.action).to eq(:see)
+    it "initializes with empty hand" do
+      expect(player.hand).to eq([])
     end
 
-    it "Should returns :raise" do
-      allow(fakePlayer).to receive(:gets).and_return("raise")
-      expect(fakePlayer.action).to eq(:raise)
+    it "initializes with default pot of 1000" do
+      expect(player.pot).to eq(1000)
     end
 
-    it "Check for invalid choices, and to prompt again" do
-      allow(fakePlayer).to receive(:gets).and_return("xyz12ojasndoasnd\n", "raise\n")
-      expect { fakePlayer.action }.to output(/Invalid choice!/).to_stdout
-      expect(fakePlayer.action).to eq(:raise)
+    it "initializes with custom pot" do
+      custom_player = Player.new("Bob", [], 2000)
+      expect(custom_player.pot).to eq(2000)
     end
   end
 
-  describe "#discard" do
-    it "prompt user for how many cards to discard" do
-      allow(fakePlayer).to receive(:gets).and_return("3")
-      expect(fakePlayer.discard).to eq 3
+  describe "#get_action" do
+    it "returns :fold for fold input" do
+      allow(player).to receive(:gets).and_return("fold")
+      expect(player.get_action).to eq(:fold)
     end
 
-    it "checks if user enter an invalid number" do
-      allow(fakePlayer).to receive(:gets).and_return("4", "2")
-      expect { fakePlayer.discard }.to output("(To john) How many card do you wish to discard (between 0 and 3)?\nSorry, enter an valid number of cards to discard:\n").to_stdout
-      expect(fakePlayer.discard).to eq 2
+    it "returns :see for see input" do
+      allow(player).to receive(:gets).and_return("see")
+      expect(player.get_action).to eq(:see)
+    end
+
+    it "returns :raise for raise input" do
+      allow(player).to receive(:gets).and_return("raise")
+      expect(player.get_action).to eq(:raise)
+    end
+
+    it "handles uppercase input" do
+      allow(player).to receive(:gets).and_return("FOLD")
+      expect(player.get_action).to eq(:fold)
+    end
+
+    it "re-prompts on invalid input" do
+      allow(player).to receive(:gets).and_return("invalid", "raise")
+      expect { player.get_action }.to output(/Invalid choice/).to_stdout
+      expect(player.get_action).to eq(:raise)
+    end
+  end
+
+  describe "#get_discard_count" do
+    it "returns valid discard count" do
+      allow(player).to receive(:gets).and_return("2")
+      expect(player.get_discard_count).to eq(2)
+    end
+
+    it "accepts 0 discards" do
+      allow(player).to receive(:gets).and_return("0")
+      expect(player.get_discard_count).to eq(0)
+    end
+
+    it "accepts max discards (3)" do
+      allow(player).to receive(:gets).and_return("3")
+      expect(player.get_discard_count).to eq(3)
+    end
+
+    it "re-prompts on invalid input" do
+      allow(player).to receive(:gets).and_return("5", "2")
+      expect { player.get_discard_count }.to output(/Invalid input/).to_stdout
+      expect(player.get_discard_count).to eq(2)
+    end
+
+    it "rejects negative numbers" do
+      allow(player).to receive(:gets).and_return("-1", "1")
+      expect { player.get_discard_count }.to output(/Invalid input/).to_stdout
+      expect(player.get_discard_count).to eq(1)
+    end
+  end
+
+  describe "#display_hand" do
+    let(:player_with_hand) do
+      Player.new("Charlie", [["Ace", "Spades"], ["King", "Hearts"]], 1000)
+    end
+
+    it "outputs player name" do
+      expect { player_with_hand.display_hand }.to output(/Charlie/).to_stdout
+    end
+
+    it "outputs all cards in hand" do
+      expect { player_with_hand.display_hand }
+        .to output(/Ace of Spades.*King of Hearts/m).to_stdout
     end
   end
 end

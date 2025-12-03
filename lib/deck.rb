@@ -1,24 +1,26 @@
 class Deck
-  attr_accessor :complete_deck
   # Using standard French 56-cards deck (includes Ace)
+  SUITS = ["Diamonds", "Clubs", "Hearts", "Spades"].freeze
+  VALUES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"].freeze
+
+  attr_accessor :cards
+
   def initialize
-    # Create the initial deck
-    @complete_deck = createInitialDeck
+    @cards = build_deck
   end
 
-  def createInitialDeck
-    # Create the deck of all different combination
-    suits = ["Diamonds", "Clubs", "Hearts", "Spades"]
-    type_cards = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
-    # To get the 56 combinations
-    @complete_deck = type_cards.product(suits)
-    # After shuffle the deck
-    @complete_deck.shuffle()
+  def deal_card
+    @cards.pop
   end
 
-  def dealCard
-    # Since it already shuffle; it gets the last card but same idea :/
-    @complete_deck.pop
+  def cards_remaining
+    @cards.length
   end
 
+  private
+
+  def build_deck
+    deck = VALUES.product(SUITS)
+    deck.shuffle
+  end
 end

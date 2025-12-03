@@ -1,96 +1,107 @@
 class Hand
-  attr_accessor :all_players_hand, :players_result
-  def initialize(all_players_hand=[])
-    # Pass in all players from Game
-    @all_players_hand = all_players_hand
-    # Used to store each player's strength
-    @players_result = {}
+  HAND_RANKINGS = {
+    royal_flush: [10, "Royal Flush"],
+    straight_flush: [9, "Straight Flush"],
+    four_of_a_kind: [8, "Four of a Kind"],
+    full_house: [7, "Full House"],
+    flush: [6, "Flush"],
+    straight: [5, "Straight"],
+    three_of_a_kind: [4, "Three of a Kind"],
+    two_pair: [3, "Two Pair"],
+    one_pair: [2, "One Pair"],
+    high_card: [1, "High Card"]
+  }.freeze
+
+  attr_accessor :players
+  attr_reader :results
+
+  def initialize(players = [])
+    @players = players
+    @results = {} # Used to store each player's strength
   end
 
-  def determine_players_strength
-    # Iterate and gets each player's strength then store it
-    @all_players_hand.each do |p|
-      result = hand_strength(p.hand)
-      # result is a array: (0) int to determine winner at end; (1) name of hand strength
-      @players_result[p.name] = result
-    end
-
-  end
-
-  def hand_strength(p_hand)
-    sorted_hand = sort_hand(p_hand) # Sort the player's hand by values (and replace with an integer)
-    values_order = sorted_hand.map {|value| value[0]} # 1d sorted array of values (should be all integers)
-    # map into 2d hash for occurence; then flatten into 1d hash
-    values_count = values_order.uniq.map { |x| {x=>values_order.count(x)} }.reduce({}, :merge)
-    suits_count = get_suits(sorted_hand) # Get hash of occurence of each suits
-    # puts values_order
-    # puts values_count
-    # puts suits_count
-
-    # Royal flush - 5 cards of same suits AND rank 10 to ace.
-    if suits_count.values.max == 5 && (values_order == [10, 11, 12, 13, 14])
-      return [10, "Royal Flush"]
-    # Straight flush - 5 cards of same suits; successive rank. should be 4 since max - min = 4
-    elsif suits_count.values.max == 5 && (values_order.max - values_order.min == 4) && values_order.uniq.length == 5
-      return [9, "Straight Flush"]
-    # Four of a Kind - any 4 matching values
-    elsif values_count.values.max == 4
-      return [8, "Four of a Kind"]
-    # Full house - 3 cards of same values; 2 cards of different values
-    elsif values_count.values.sort == [2, 3]
-      return [7, "Full House"]
-    # Flush - 5 cards of the same suit, values doesnt matter (tie based on rank)
-    elsif suits_count.values.max == 5
-      return [6, "Flush"]
-    # Straight - 5 cards in sequence, more than 1 suit
-    elsif values_order.max - values_order.min == 4 && values_order.uniq.length == 5
-      return [5, "Straight"]
-    # Three of a kind - 3 cards of the same rank in different rank
-    elsif values_count.values.max == 3
-      return [4, "Three of a Kind"]
-    # Two pair - 2 sets of cards with the same values
-    elsif values_count.values.count(2) == 2 && values_count.keys.length == 3
-      return [3, "Two Pair"]
-    # One Pair - 2 same values
-    elsif values_count.values.count(2) == 1
-      return [2, "One Pair"]
-    # High card - None of the above combinations; determined by the highest ranking card in hand
-    else
-      return [1, "High Card"]
+  def evaluate_all_hands
+    @players.each do |player|
+      @results[player.name] = evaluate_hand(player.hand)
     end
   end
 
   def winners
-    # Since determine_players_strength sorted by highest already
-    highest_rank = @players_result.values[0][0]
-    # Gets a list of of winner(s)
-    the_winners = @players_result.filter {|k, v| v[0] == highest_rank}
-    return the_winners
+    highest_rank = @results.values.map { |result| result[0] }.max
+    @results.select { |_, result| result[0] == highest_rank }
   end
 
   private
 
-  # Helper to sort hand AND values to integer
-  def sort_hand(h)
-    custom_sort_order = {
-    "Jack" => 11,
-    "Queen" => 12,
-    "King" => 13,
-    "Ace" => 14
-  }
-    # sorted_h = h.sort_by { |value, suit| custom_sort_order[value] || value.to_i }
-    sorted_h = h.map do |value, suit|
-      [custom_sort_order[value] || value.to_i, suit]
-    end
-    return sorted_h.sort
+  def evaluate_hand(cards)
+    card_values = convert_to_numeric(cards)
+    suit_counts = count_suits(cards)
+    value_counts = count_values(card_values)
+
+    determine_hand_type(card_values, suit_counts, value_counts)
   end
-  # Helper to get suits occurence
-  def get_suits(h)
-    suit_counts = Hash.new(0)
-    h.each do |card|
-      value, suit = card
-      suit_counts[suit] += 1
+
+  def determine_hand_type(values, suits, value_counts)
+    max_suit_count = suits.values.max
+    max_value_count = value_counts.values.max
+    value_counts_array = value_counts.values.sort
+
+    # Royal flush - 5 cards of same suits AND rank 10 to ace.
+    return HAND_RANKINGS[:royal_flush] if royal_flush?(values, max_suit_count)
+    # Straight flush - 5 cards of same suits; successive rank. should be 4 since max - min = 4
+    return HAND_RANKINGS[:straight_flush] if straight_flush?(values, max_suit_count)
+    # Four of a Kind - any 4 matching values
+    return HAND_RANKINGS[:four_of_a_kind] if max_value_count == 4
+    # Full house - 3 cards of same values; 2 cards of different values
+    return HAND_RANKINGS[:full_house] if value_counts_array == [2, 3]
+    # Flush - 5 cards of the same suit, values doesnt matter (tie based on rank)
+    return HAND_RANKINGS[:flush] if max_suit_count == 5
+    # Straight - 5 cards in sequence, more than 1 suit
+    return HAND_RANKINGS[:straight] if straight?(values)
+    # Three of a kind - 3 cards of the same rank in different rank
+    return HAND_RANKINGS[:three_of_a_kind] if max_value_count == 3
+    # Two pair - 2 sets of cards with the same values
+    return HAND_RANKINGS[:two_pair] if two_pair?(value_counts)
+    # One Pair - 2 same values
+    return HAND_RANKINGS[:one_pair] if max_value_count == 2
+    # High card - None of the above combinations; determined by the highest ranking card in hand
+    return HAND_RANKINGS[:high_card]
+  end
+
+  def royal_flush?(values, max_suit_count)
+    max_suit_count == 5 && values.sort == [10, 11, 12, 13, 14]
+  end
+
+  def straight_flush?(values, max_suit_count)
+    max_suit_count == 5 && consecutive?(values)
+  end
+
+  def straight?(values)
+    consecutive?(values) && values.uniq.length == 5
+  end
+
+  def two_pair?(value_counts)
+    value_counts.values.count(2) == 2 && value_counts.keys.length == 3
+  end
+
+  def consecutive?(values)
+    sorted_values = values.sort.uniq
+    sorted_values.length == 5 && (sorted_values.max - sorted_values.min) == 4
+  end
+
+  def convert_to_numeric(cards)
+    cards.map { |value, _| Card::FACE_VALUES[value] || value.to_i }
+  end
+
+  def count_values(numeric_values)
+    numeric_values.uniq.each_with_object({}) do |value, hash|
+      hash[value] = numeric_values.count(value)
     end
-    return suit_counts
+  end
+
+  def count_suits(cards)
+    cards.each_with_object(Hash.new(0)) do |(_, suit), hash|
+      hash[suit] += 1
+    end
   end
 end
