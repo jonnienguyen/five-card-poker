@@ -153,6 +153,8 @@ RSpec.describe Game do
       allow_any_instance_of(Hand).to receive(:results)
         .and_return({ "Alice" => [10, "Royal Flush"],
                      "Bob" => [1, "High Card"] })
+      allow_any_instance_of(Hand).to receive(:winners)
+        .and_return({ "Alice" => [10, "Royal Flush"] })
 
       expect { game.showdown }.to output(/winners/i).to_stdout
     end
@@ -164,6 +166,9 @@ RSpec.describe Game do
 
       allow_any_instance_of(Hand).to receive(:evaluate_all_hands)
       allow_any_instance_of(Hand).to receive(:results)
+        .and_return({ "Alice" => [10, "Royal Flush"],
+                     "Bob" => [10, "Royal Flush"] })
+      allow_any_instance_of(Hand).to receive(:winners)
         .and_return({ "Alice" => [10, "Royal Flush"],
                      "Bob" => [10, "Royal Flush"] })
 
@@ -183,6 +188,8 @@ RSpec.describe Game do
       allow_any_instance_of(Hand).to receive(:results)
         .and_return({ "Alice" => [10, "Royal Flush"],
                      "Bob" => [1, "High Card"] })
+      allow_any_instance_of(Hand).to receive(:winners)
+        .and_return({ "Alice" => [10, "Royal Flush"] })
 
       game.showdown
 

@@ -1,6 +1,6 @@
 class Game
-  attr_accessor :deck, :players, :current_turn_player
-  attr_reader :folded_players, :bets, :pot
+  attr_accessor :deck, :players, :current_turn_player, :pot
+  attr_reader :folded_players, :bets
 
   def initialize(player_names)
     @deck = Deck.new
@@ -16,20 +16,6 @@ class Game
     discard_round
     betting_round
     showdown
-  end
-
-  private
-
-  def create_players_and_deal(player_names)
-    players = player_names.map { |name| Player.new(name) }
-    deal_initial_hands(players)
-    players
-  end
-
-  def deal_initial_hands(players)
-    players.each do |player|
-      5.times { player.hand << @deck.deal_card }
-    end
   end
 
   def betting_round
@@ -52,6 +38,41 @@ class Game
     end
 
     remove_folded_players
+  end
+
+  def discard_round
+    @players.each do |player|
+      @current_turn_player = player
+      player.display_hand
+
+      discard_indices = get_discard_indices(player)
+      replace_cards(player, discard_indices)
+    end
+  end
+
+  def showdown
+    puts "\n========== SHOWDOWN =========="
+
+    hand_evaluator = Hand.new(@players)
+    hand_evaluator.evaluate_all_hands
+    winners = hand_evaluator.winners
+
+    display_hand_rankings(hand_evaluator)
+    distribute_pot(winners)
+  end
+
+  private
+
+  def create_players_and_deal(player_names)
+    players = player_names.map { |name| Player.new(name) }
+    deal_initial_hands(players)
+    players
+  end
+
+  def deal_initial_hands(players)
+    players.each do |player|
+      5.times { player.hand << @deck.deal_card }
+    end
   end
 
   def handle_fold(player)
@@ -118,16 +139,6 @@ class Game
     @players -= @folded_players
   end
 
-  def discard_round
-    @players.each do |player|
-      @current_turn_player = player
-      player.display_hand
-
-      discard_indices = get_discard_indices(player)
-      replace_cards(player, discard_indices)
-    end
-  end
-
   def get_discard_indices(player)
     count = player.get_discard_count
     return [] if count.zero?
@@ -155,17 +166,6 @@ class Game
     end
     puts "\n(To #{player.name}) Your updated hand:"
     player.display_hand
-  end
-
-  def showdown
-    puts "\n========== SHOWDOWN =========="
-
-    hand_evaluator = Hand.new(@players)
-    hand_evaluator.evaluate_all_hands
-    winners = hand_evaluator.winners
-
-    display_hand_rankings(hand_evaluator)
-    distribute_pot(winners)
   end
 
   def display_hand_rankings(hand_evaluator)
